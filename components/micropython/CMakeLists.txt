@@ -465,9 +465,9 @@ if(CONFIG_COMPONENT_MICROPYTHON_ENABLE)
             VERBATIM
         )
     add_custom_target(gen_collected_h
-            COMMAND ${python} ${mpy_core_src_dir}/makeqstrdefs.py split ${mpy_build_gen_header_dir}/qstr.i.last ${mpy_build_gen_header_dir}/qstr ${QSTR_DEFS_COLLECTED}
+            COMMAND ${python} ${mpy_core_src_dir}/makeqstrdefs.py split qstr ${mpy_build_gen_header_dir}/qstr.i.last ${mpy_build_gen_header_dir}/qstr ${QSTR_DEFS_COLLECTED}
             COMMAND touch ${mpy_build_gen_header_dir}/qstr.split
-            COMMAND ${python} ${mpy_core_src_dir}/makeqstrdefs.py cat ${mpy_build_gen_header_dir}/qstr.i.last ${mpy_build_gen_header_dir}/qstr ${QSTR_DEFS_COLLECTED}
+            COMMAND ${python} ${mpy_core_src_dir}/makeqstrdefs.py cat qstr ${mpy_build_gen_header_dir}/qstr.i.last ${mpy_build_gen_header_dir}/qstr ${QSTR_DEFS_COLLECTED}
             DEPENDS gen_qstr_i_last
             VERBATIM
         )

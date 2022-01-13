@@ -30,6 +30,7 @@
 
 #include <stdio.h>
 
+#include "py/obj.h"
 #include "py/runtime.h"
 #include "py/stream.h"
 #include "py/mperrno.h"
@@ -51,7 +52,7 @@ typedef struct _pyb_file_obj_t {
 } pyb_file_obj_t;
 
 const byte SPIFFS_errno_table[43] = {
-	[FS_OK] = 0	,	 
+	[FS_OK] = 0	,
 	[ERR_NOT_MOUNTED] = MP_ENOEXEC,
 	[ERR_FULL] = MP_ENOSPC,
 	[ERR_NOT_FOUND] = MP_ENOENT,
@@ -60,7 +61,7 @@ const byte SPIFFS_errno_table[43] = {
 	[ERR_NOT_FINALIZED] = MP_EIO,//TODO
 	[ERR_NOT_INDEX] = MP_EIO,//TODO
 	[ERR_OUT_OF_FILE_DESCS] = MP_EMFILE,
-	[ERR_FILE_CLOSED] = MP_EPERM,            
+	[ERR_FILE_CLOSED] = MP_EPERM,
 	[ERR_FILE_DELETED] = MP_EIO,//TODO
 	[ERR_BAD_DESCRIPTOR] = MP_EBADF,
 	[ERR_IS_INDEX] = MP_EPERM,
@@ -75,7 +76,7 @@ const byte SPIFFS_errno_table[43] = {
 	[ERR_INDEX_INVALID] = MP_EINVAL,
 	[ERR_NOT_WRITABLE] = MP_EPERM,
 	[ERR_NOT_READABLE] = MP_EPERM,
-	[ERR_CONFLICTING_NAME] = MP_EEXIST,     
+	[ERR_CONFLICTING_NAME] = MP_EEXIST,
 	[ERR_NOT_CONFIGURED] = MP_EIO,
 	[ERR_NOT_A_FS] = MP_EIO,
 	[ERR_MOUNTED] = MP_EIO,
@@ -190,9 +191,9 @@ STATIC mp_uint_t file_obj_ioctl(mp_obj_t o_in, mp_uint_t request, uintptr_t arg,
 
 
 STATIC const mp_arg_t file_open_args[] = {
-    { MP_QSTR_file, MP_ARG_OBJ | MP_ARG_REQUIRED, {.u_rom_obj = MP_ROM_PTR(&mp_const_none_obj)} },
+    { MP_QSTR_file, MP_ARG_OBJ | MP_ARG_REQUIRED, {.u_rom_obj = MP_ROM_NONE} },
     { MP_QSTR_mode, MP_ARG_OBJ, {.u_obj = MP_OBJ_NEW_QSTR(MP_QSTR_r)} },
-    { MP_QSTR_encoding, MP_ARG_OBJ | MP_ARG_KW_ONLY, {.u_rom_obj = MP_ROM_PTR(&mp_const_none_obj)} },
+    { MP_QSTR_encoding, MP_ARG_OBJ | MP_ARG_KW_ONLY, {.u_rom_obj = MP_ROM_NONE} },
 };
 #define FILE_OPEN_NUM_ARGS MP_ARRAY_SIZE(file_open_args)
 
@@ -244,7 +245,7 @@ STATIC mp_obj_t file_open(spiffs_user_mount_t *vfs, const mp_obj_type_t *type, m
     o->base.type = type;
     spiffs_FILE fp;
 	fp.fd = SPIFFS_open(&vfs->fs,open_name,mode,0);
-    fp.fs = &vfs->fs;  
+    fp.fs = &vfs->fs;
     if(fp.fd <= 0)
     {
         m_del_obj(pyb_file_obj_t, o);
