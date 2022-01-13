@@ -10,7 +10,7 @@
 
 #if MAIXPY_PY_MODULES
 
-STATIC const mp_map_elem_t modules_globals_table[] = {
+STATIC const mp_rom_map_elem_t modules_globals_table[] = {
     { MP_OBJ_NEW_QSTR(MP_QSTR___name__), MP_OBJ_NEW_QSTR(MP_QSTR_modules) },
     { MP_ROM_QSTR(MP_QSTR_ultrasonic),  MP_ROM_PTR(&modules_ultrasonic_type) },
     { MP_ROM_QSTR(MP_QSTR_onewire),  MP_ROM_PTR(&modules_onewire_type) },

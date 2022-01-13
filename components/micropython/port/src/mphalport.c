@@ -15,13 +15,13 @@
 
 #if  MICROPY_PY_THREAD
 	#include "FreeRTOS.h"
-#endif 
+#endif
 
 int mp_hal_stdin_rx_chr(void) {
 	int c = 0;
 	for (;;)
 	{
-		if (MP_STATE_PORT(Maix_stdio_uart) != NULL ) 
+		if (MP_STATE_PORT(Maix_stdio_uart) != NULL )
 		{
 			c = uart_rx_char(MP_STATE_PORT(Maix_stdio_uart));
 			if (c != -1) {
@@ -33,7 +33,7 @@ int mp_hal_stdin_rx_chr(void) {
 			if( MP_STATE_VM(dupterm_objs[idx]) != NULL && uart_rx_any(MP_STATE_VM(dupterm_objs[idx])))
 			{
 				int dupterm_c = mp_uos_dupterm_rx_chr();
-				 if (dupterm_c >= 0) 
+				 if (dupterm_c >= 0)
 				{
 					return dupterm_c;
 				}
@@ -62,13 +62,15 @@ const mp_print_t mp_debug_print = {NULL, mp_hal_debug_tx_strn_cooked};
 void mp_hal_stdout_tx_strn(const char *str, mp_uint_t len) {
 
 	bool release_gil = len > 20 ? true : false;
-	if(release_gil)
+	if (release_gil) {
 		MP_THREAD_GIL_EXIT();
+	}
     if (MP_STATE_PORT(Maix_stdio_uart) != NULL) {
         uart_tx_strn(MP_STATE_PORT(Maix_stdio_uart), str, len);
     }
-	if(release_gil)
+	if (release_gil) {
 		MP_THREAD_GIL_ENTER();
+	}
    	mp_uos_dupterm_tx_strn(str, len);
 }
 
@@ -99,7 +101,7 @@ mp_uint_t inline mp_hal_ticks_ms(void)
     return (unsigned long)(read_csr(mcycle)/(sysctl_clock_get_freq(SYSCTL_CLOCK_CPU)/1000));
 }
 
-void mp_hal_delay_ms(mp_uint_t ms) 
+void mp_hal_delay_ms(mp_uint_t ms)
 {
 	#if  MICROPY_PY_THREAD
 		if( xTaskGetSchedulerState() == taskSCHEDULER_NOT_STARTED )
@@ -148,11 +150,15 @@ mp_uint_t systick_current_millis(void) __attribute__((weak, alias("mp_hal_ticks_
 
 // Wake up the main task if it is sleeping
 void mp_hal_wake_main_task_from_isr(void) {
-	#if MICROPY_PY_THREAD 
+	#if MICROPY_PY_THREAD
 		BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 		vTaskNotifyGiveFromISR(mp_main_task_handle, &xHigherPriorityTaskWoken);
 		if (xHigherPriorityTaskWoken == pdTRUE) {
 			portYIELD();
 		}
 	#endif
+}
+
+uintptr_t mp_hal_stdio_poll(uintptr_t poll_flags) {
+	return 0;
 }

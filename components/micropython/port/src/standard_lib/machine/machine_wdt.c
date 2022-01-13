@@ -48,7 +48,7 @@ typedef struct _machine_wdt_obj_t {
 
 STATIC void machine_wdt_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t kind) {
     machine_wdt_obj_t *self = self_in;
-    mp_printf(print, 
+    mp_printf(print,
         "[MAIXPY]WDT:(%p; id=%d, timeout=%d, callback=%p, context=%p)",
         self, self->id, self->timeout, self->callback, self->context);
 }
@@ -60,7 +60,7 @@ STATIC void patch_wdt_stop(wdt_device_number_t id) {
 }
 
 // #include "printf.h"
-STATIC void machine_wdt_isr(void *self_in) {
+STATIC int machine_wdt_isr(void *self_in) {
     machine_wdt_obj_t *self = self_in;
     if (self->callback != mp_const_none) {
         // printk("wdt id is %d\n", self->id);
@@ -71,6 +71,7 @@ STATIC void machine_wdt_isr(void *self_in) {
         }
         mp_hal_wake_main_task_from_isr();
     }
+    return 0;
 }
 
 STATIC mp_obj_t machine_wdt_make_new(const mp_obj_type_t *type_in, size_t n_args, size_t n_kw, const mp_obj_t *all_args) {
@@ -100,7 +101,7 @@ STATIC mp_obj_t machine_wdt_make_new(const mp_obj_type_t *type_in, size_t n_args
     self->callback  = args[ARG_callback].u_obj;
     self->context  = args[ARG_context].u_obj;
     self->is_interrupt = false;
-    
+
     patch_wdt_stop(self->id);
     if (self->callback != mp_const_none) {
         wdt_init(self->id, self->timeout, (plic_irq_callback_t)machine_wdt_isr, (void *)self);
@@ -167,7 +168,7 @@ static void unit_test() {
             printf("wdt_stop\n");
             wdt_stop((wdt_device_number_t)0);
             sysctl_clock_disable(0 ? SYSCTL_CLOCK_WDT1 : SYSCTL_CLOCK_WDT0); // patch for fix stop
-            while(1) 
+            while(1)
             {
                 printf("wdt_idle\n");
                 sleep(1);
