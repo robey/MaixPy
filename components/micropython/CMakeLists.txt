@@ -171,6 +171,7 @@ if(CONFIG_COMPONENT_MICROPYTHON_ENABLE)
                     "core/py/objtype.c"
                     "core/py/objzip.c"
                     "core/py/opmethods.c"
+                    "core/py/pairheap.c"
                     "core/py/sequence.c"
                     "core/py/stream.c"
                     "core/py/binary.c"
@@ -198,6 +199,7 @@ if(CONFIG_COMPONENT_MICROPYTHON_ENABLE)
             )
 
     list(APPEND MPY_EXTMOD_SRCS
+                        "core/extmod/moduasyncio.c"
                         "core/extmod/moductypes.c"
                         "core/extmod/modujson.c"
                         "core/extmod/modure.c"
@@ -488,6 +490,7 @@ if(CONFIG_COMPONENT_MICROPYTHON_ENABLE)
                 )
 
     file(GLOB frozen_py "${mpy_frozen_py_dir}/*.py")
+    file(GLOB frozen_uasyncio_py "${mpy_core_dir}/extmod/uasyncio/*.py")
     if(NOT CONFIG_MAIXPY_BUILTIN_PY_PYE)
         list(REMOVE_ITEM frozen_py "${mpy_frozen_py_dir}/pye_mp.py")
     endif()
@@ -510,9 +513,22 @@ if(CONFIG_COMPONENT_MICROPYTHON_ENABLE)
                     )
         # add_custom_target("mpy_${py_name}_target" DEPENDS ${mpy})
     endforeach()
+    foreach(py ${frozen_uasyncio_py})
+        get_filename_component(py_name ${py} NAME)
+        string(REPLACE ".py" "" py_name ${py_name})
+        string(REPLACE ".py" ".mpy" mpy ${py})
+        set(mpy_path ${mpy_build_mpy_dir}/uasyncio/${py_name}.mpy)
+        list(APPEND frozen_mpy ${mpy_path})
+        add_custom_command(OUTPUT ${mpy_path}
+                            COMMAND mkdir -p ${mpy_build_mpy_dir}/uasyncio
+                            DEPENDS ${py}
+                            COMMAND ${mpy_core_dir}/mpy-cross/mpy-cross -o ${mpy_path} -s uasyncio/${py_name}.py ${py}
+                    )
+        # add_custom_target("mpy_${py_name}_target" DEPENDS ${mpy})
+    endforeach()
     add_custom_command(OUTPUT ${MPY_FROZEN_SRC}
                 COMMAND ${python} ${mpy_core_dir}/tools/mpy-tool.py -f -q ${mpy_build_gen_header_dir}/qstrdefs.preprocessed.h ${frozen_mpy} > ${MPY_FROZEN_SRC}
-                DEPENDS ${qstr_header} ${frozen_mpy}
+                DEPENDS ${qstr_header} ${frozen_mpy} ${frozen_uasyncio_mpy}
             )
 
     ################################

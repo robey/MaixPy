@@ -3,6 +3,7 @@
 #include "py/obj.h"
 #include "py/mpstate.h"
 #include "py/mphal.h"
+#include "py/runtime.h"
 #include "extmod/misc.h"
 #include "lib/utils/pyexec.h"
 #include "mphalport.h"
@@ -43,8 +44,7 @@ int mp_hal_stdin_rx_chr(void) {
 		// #if MICROPY_PY_THREAD
 		// 		ulTaskNotifyTake(pdFALSE, 1);
 		// #endif
-		extern void mp_handle_pending(void);
-        mp_handle_pending();
+        mp_handle_pending(true);
         MICROPY_PY_USOCKET_EVENTS_HANDLER
         MP_THREAD_GIL_EXIT();
 	#if MICROPY_PY_THREAD

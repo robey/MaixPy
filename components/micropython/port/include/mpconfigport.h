@@ -118,7 +118,7 @@ extern const struct _mp_print_t mp_debug_print;
 #define MICROPY_ENABLE_DOC_STRING                 (0)
 #define MICROPY_ERROR_REPORTING     (MICROPY_ERROR_REPORTING_DETAILED)
 #define MICROPY_BUILTIN_METHOD_CHECK_SELF_ARG (0)
-#define MICROPY_PY_ASYNC_AWAIT      (0)
+#define MICROPY_PY_ASYNC_AWAIT      (1)
 #define MICROPY_PY_BUILTINS_BYTEARRAY (1)
 #define MICROPY_PY_BUILTINS_MEMORYVIEW (1)
 #define MICROPY_PY_BUILTINS_FROZENSET (1)
@@ -178,7 +178,7 @@ extern const struct _mp_print_t mp_debug_print;
 #define MICROPY_PY_SYS_STDFILES             (1)
 #define MICROPY_PY_SYS_STDIO_BUFFER         (1)
 #define MICROPY_PY_UERRNO                   (1)
-#define MICROPY_PY_USELECT                  (0)
+#define MICROPY_PY_USELECT                  (1)
 #define MICROPY_PY_UTIME_MP_HAL             (1)
 
 #if CONFIG_MAIXPY_THREAD_ENABLE
@@ -215,6 +215,7 @@ extern const struct _mp_print_t mp_debug_print;
 
 
 // extended modules
+#define MICROPY_PY_UASYNCIO                 (1)
 #define MICROPY_PY_UCTYPES                  (1)
 #define MICROPY_PY_UZLIB                    (1)
 #define MICROPY_PY_UJSON                    (1)
@@ -313,7 +314,7 @@ extern const struct _mp_obj_module_t video_module;
 #define MAIXPY_PY_VIDEO_DEF \
     { MP_OBJ_NEW_QSTR(MP_QSTR_video), (mp_obj_t)&video_module },
 #else
-#define MAIXPY_PY_VIDEO_DEF 
+#define MAIXPY_PY_VIDEO_DEF
 #endif
 
 // nes game emulator
@@ -324,7 +325,7 @@ extern const struct _mp_obj_module_t nes_module;
 #define MAIXPY_PY_NES_DEF \
     { MP_OBJ_NEW_QSTR(MP_QSTR_nes), (mp_obj_t)&nes_module },
 #else
-#define MAIXPY_PY_NES_DEF 
+#define MAIXPY_PY_NES_DEF
 #endif
 
 // speech_recognizer
@@ -335,7 +336,7 @@ extern const struct _mp_obj_module_t mp_module_speech_recognizer;
 #define MAIXPY_PY_SPEECH_RECOGNIZER_DEF \
     { MP_OBJ_NEW_QSTR(MP_QSTR_speech_recognizer), (mp_obj_t)&mp_module_speech_recognizer },
 #else
-#define MAIXPY_PY_SPEECH_RECOGNIZER_DEF 
+#define MAIXPY_PY_SPEECH_RECOGNIZER_DEF
 #endif
 // lvgl GUI lib
 
@@ -371,7 +372,7 @@ extern const struct _mp_obj_module_t mp_module_touchscreen;
 #define MAIXPY_PY_TOUCHSCREEN_DEF \
     { MP_OBJ_NEW_QSTR(MP_QSTR_touchscreen), (mp_obj_t)&mp_module_touchscreen },
 #else
-#define MAIXPY_PY_TOUCHSCREEN_DEF 
+#define MAIXPY_PY_TOUCHSCREEN_DEF
 #endif
 
 #define  MAIXPY_PY_MODULES                   (1)
@@ -446,7 +447,7 @@ extern const struct _mp_obj_module_t mp_module_touchscreen;
 
 //TODO:
 #if MICROPY_PY_USOCKET_EVENTS
-#define MICROPY_PY_USOCKET_EVENTS_HANDLER 
+#define MICROPY_PY_USOCKET_EVENTS_HANDLER
 #else
 #define MICROPY_PY_USOCKET_EVENTS_HANDLER
 #endif
@@ -454,8 +455,7 @@ extern const struct _mp_obj_module_t mp_module_touchscreen;
 #if MICROPY_PY_THREAD
 #define MICROPY_EVENT_POLL_HOOK \
     do { \
-        extern void mp_handle_pending(void); \
-        mp_handle_pending(); \
+        mp_handle_pending(true); \
         MICROPY_PY_USOCKET_EVENTS_HANDLER \
         MP_THREAD_GIL_EXIT(); \
         MP_THREAD_GIL_ENTER(); \
@@ -463,8 +463,7 @@ extern const struct _mp_obj_module_t mp_module_touchscreen;
 #else
 #define MICROPY_EVENT_POLL_HOOK \
     do { \
-        extern void mp_handle_pending(void); \
-        mp_handle_pending(); \
+        mp_handle_pending(true); \
         MICROPY_PY_USOCKET_EVENTS_HANDLER \
     } while (0);
 #endif
