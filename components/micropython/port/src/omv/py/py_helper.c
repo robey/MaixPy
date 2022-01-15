@@ -67,7 +67,7 @@ void py_helper_keyword_xy(image_t *img, uint n_args, const mp_obj_t *args, uint 
 {
 	//mp_obj_t kw= MP_OBJ_NEW_QSTR(MP_QSTR_oft);
     mp_map_elem_t *kw_arg = mp_map_lookup(kw_args, kw, MP_MAP_LOOKUP);
-	
+
     if (kw_arg) {
         mp_obj_t *arg_point;
         mp_obj_get_array_fixed_n(kw_arg->value, 2, &arg_point);
@@ -230,6 +230,30 @@ uint py_helper_consume_array(size_t n_args, const mp_obj_t *args, uint arg_index
         PY_ASSERT_TRUE_MSG((n_args - arg_index) >= len, "Not enough positional arguments!");
         *items = args + arg_index;
         return arg_index + len;
+    }
+}
+
+int py_helper_parse_color(image_t *img, const mp_obj_t value) {
+    if (mp_obj_is_integer(value)) return mp_obj_get_int(value);
+
+    mp_obj_t *arg_color;
+    mp_obj_get_array_fixed_n(value, 3, &arg_color);
+    int color = COLOR_R8_G8_B8_TO_RGB565(
+        IM_MAX(IM_MIN(mp_obj_get_int(arg_color[0]), COLOR_R8_MAX), COLOR_R8_MIN),
+        IM_MAX(IM_MIN(mp_obj_get_int(arg_color[1]), COLOR_G8_MAX), COLOR_G8_MIN),
+        IM_MAX(IM_MIN(mp_obj_get_int(arg_color[2]), COLOR_B8_MAX), COLOR_B8_MIN)
+    );
+
+    switch (img->bpp) {
+        case IMAGE_BPP_BINARY: {
+            return COLOR_RGB565_TO_BINARY(color);
+        }
+        case IMAGE_BPP_GRAYSCALE: {
+            return COLOR_RGB565_TO_GRAYSCALE(color);
+        }
+        default: {
+            return color;
+        }
     }
 }
 
