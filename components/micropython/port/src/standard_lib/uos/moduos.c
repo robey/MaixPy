@@ -65,7 +65,7 @@ STATIC const qstr os_uname_info_fields[] = {
 };
 STATIC const MP_DEFINE_STR_OBJ(os_uname_info_sysname_obj, MICROPY_PY_SYS_PLATFORM);
 STATIC const MP_DEFINE_STR_OBJ(os_uname_info_nodename_obj, MICROPY_PY_SYS_PLATFORM);
-STATIC const MP_DEFINE_STR_OBJ(os_uname_info_release_obj, MICROPY_VERSION_STRING);
+STATIC const MP_DEFINE_STR_OBJ(os_uname_info_release_obj, MAIXPY_FULL_VERSION_STRING);
 STATIC const MP_DEFINE_STR_OBJ(os_uname_info_version_obj, MICROPY_GIT_TAG " on " MICROPY_BUILD_DATE);
 STATIC const MP_DEFINE_STR_OBJ(os_uname_info_machine_obj, MICROPY_HW_BOARD_NAME " with " MICROPY_HW_MCU_NAME);
 
@@ -112,7 +112,7 @@ STATIC mp_obj_t uos_dupterm(size_t n_args, const mp_obj_t *args) {
 }
 
 MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(uos_dupterm_obj, 1, 2, uos_dupterm);
-#endif 
+#endif
 
 #if MICROPY_HW_UART_REPL
 STATIC mp_obj_t uos_set_REPLio(const mp_obj_t args) {
@@ -120,9 +120,9 @@ STATIC mp_obj_t uos_set_REPLio(const mp_obj_t args) {
 	mp_obj_t prev_uart_obj;
 	if(mp_obj_get_type(MP_STATE_PORT(Maix_stdio_uart)) == &machine_uart_type)
 		prev_uart_obj = MP_STATE_PORT(Maix_stdio_uart);
-	else 
+	else
 		prev_uart_obj = mp_const_none;
-	//judget type 
+	//judget type
 	if(mp_obj_get_type(args) == &machine_uart_type)
 	{
 		uart_attach_to_repl(MP_STATE_PORT(Maix_stdio_uart), false);
@@ -132,7 +132,7 @@ STATIC mp_obj_t uos_set_REPLio(const mp_obj_t args) {
 	else
 		return  mp_const_none;
 	return prev_uart_obj;
-	
+
 }
 MP_DEFINE_CONST_FUN_OBJ_1(uos_set_REPLio_obj, uos_set_REPLio);
 #endif

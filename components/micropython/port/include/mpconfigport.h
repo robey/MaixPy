@@ -11,29 +11,23 @@
 #ifndef _MPCONFIGPORT_H_
 #define _MPCONFIGPORT_H_
 
-
-// Current version of MicroPython
-#undef MICROPY_VERSION_MAJOR
-#undef MICROPY_VERSION_MINOR
-#undef MICROPY_VERSION_MICRO
-#undef MICROPY_VERSION
-#undef MICROPY_VERSION_STRING
-
-#define MICROPY_VERSION_MAJOR BUILD_VERSION_MAJOR
-#define MICROPY_VERSION_MINOR BUILD_VERSION_MINOR
-#define MICROPY_VERSION_MICRO BUILD_VERSION_DEV
+#define MAIXPY_VERSION_MAJOR BUILD_VERSION_MAJOR
+#define MAIXPY_VERSION_MINOR BUILD_VERSION_MINOR
+#define MAIXPY_VERSION_MICRO BUILD_VERSION_DEV
 
 // Combined version as a 32-bit number for convenience
-#define MICROPY_VERSION ( \
-    MICROPY_VERSION_MAJOR << 16 \
-    | MICROPY_VERSION_MINOR << 8 \
-    | MICROPY_VERSION_MICRO)
+#define MAIXPY_VERSION ( \
+    MAIXPY_VERSION_MAJOR << 16 \
+    | MAIXPY_VERSION_MINOR << 8 \
+    | MAIXPY_VERSION_MICRO)
 
 // String version
-#define MICROPY_VERSION_STRING \
-    MP_STRINGIFY(MICROPY_VERSION_MAJOR) "." \
-    MP_STRINGIFY(MICROPY_VERSION_MINOR) "." \
-    MP_STRINGIFY(MICROPY_VERSION_MICRO)
+#define MAIXPY_VERSION_STRING \
+    MP_STRINGIFY(MAIXPY_VERSION_MAJOR) "." \
+    MP_STRINGIFY(MAIXPY_VERSION_MINOR) "." \
+    MP_STRINGIFY(MAIXPY_VERSION_MICRO)
+
+#define MAIXPY_FULL_VERSION_STRING ("maixpy-" MAIXPY_VERSION_STRING ",micropython-" MICROPY_VERSION_STRING)
 
 // object representation and NLR handling
 #define MICROPY_OBJ_BASE_ALIGNMENT  __attribute__((aligned(8)))
@@ -140,6 +134,7 @@ extern const struct _mp_print_t mp_debug_print;
 
 // control over Python builtins
 #define MICROPY_PY_STR_BYTES_CMP_WARN       (1)
+#define MICROPY_PY_FSTRINGS                 (1)
 #define MICROPY_PY_BUILTINS_STR_UNICODE     (1)
 #define MICROPY_PY_BUILTINS_STR_CENTER      (1)
 #define MICROPY_PY_BUILTINS_STR_PARTITION   (1)
@@ -483,4 +478,3 @@ extern const struct _mp_obj_module_t mp_module_touchscreen;
 
 
 #endif // _MPCONFIGPORT_H_
-
