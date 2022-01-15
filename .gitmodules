@@ -10,6 +10,7 @@
 [submodule "components/micropython/core"]
 	path = components/micropython/core
 	url = https://github.com/micropython/micropython.git
+	branch = v1.17
 [submodule "components/micropython/port/src/lvgl/lv_bindings"]
 	path = components/micropython/port/src/lvgl/lv_bindings
 	url = https://github.com/littlevgl/lv_binding_micropython.git
