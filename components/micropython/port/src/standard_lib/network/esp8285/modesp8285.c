@@ -31,7 +31,7 @@
 #include "py/runtime.h"
 #include "py/mperrno.h"
 #include "py/mphal.h"
-#include "lib/netutils/netutils.h"
+#include "shared/netutils/netutils.h"
 #include "modnetwork.h"
 #include "modmachine.h"
 #include "esp8285.h"
@@ -44,7 +44,7 @@ typedef struct _nic_obj_t {
 #if MICROPY_UART_NIC
 		mp_obj_t uart_obj;
 		esp8285_obj esp8285;
-#endif 
+#endif
 } nic_obj_t;
 
 typedef struct _stream_obj_t {
@@ -186,11 +186,11 @@ STATIC int esp8285_socket_gethostbyname(mp_obj_t nic, const char *name, mp_uint_
 }
 
 STATIC mp_obj_t esp8285_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
-	
+
 #if MICROPY_UART_NIC
 
     // set uart to communicate
-	if(&machine_uart_type != mp_obj_get_type(args[0])) 
+	if(&machine_uart_type != mp_obj_get_type(args[0]))
 	{
 		mp_raise_ValueError("invalid uart stream");
 	}
@@ -198,7 +198,7 @@ STATIC mp_obj_t esp8285_make_new(const mp_obj_type_t *type, size_t n_args, size_
     nic_obj_t* nic_obj = m_new_obj(nic_obj_t);
     uint8_t* buff = m_new(uint8_t, ESP8285_BUF_SIZE);
     Buffer_Init(&nic_obj->esp8285.buffer, buff, ESP8285_BUF_SIZE);
-    nic_obj->base.type = (mp_obj_type_t*)&mod_network_nic_type_esp8285;		
+    nic_obj->base.type = (mp_obj_type_t*)&mod_network_nic_type_esp8285;
     nic_obj->esp8285.uart_obj = args[0];
     nic_obj->uart_obj = args[0];
     if (0 == eINIT(&nic_obj->esp8285)) {
@@ -232,7 +232,7 @@ STATIC mp_obj_t esp8285_nic_connect(size_t n_args, const mp_obj_t *pos_args, mp_
     const char *ssid = NULL;
 	if (args[ARG_key].u_obj != mp_const_none) {
         ssid = mp_obj_str_get_data(args[ARG_ssid].u_obj, &ssid_len);
-    }		
+    }
     // get key
     size_t key_len = 0;
     const char *key = NULL;
@@ -240,7 +240,7 @@ STATIC mp_obj_t esp8285_nic_connect(size_t n_args, const mp_obj_t *pos_args, mp_
         key = mp_obj_str_get_data(args[1].u_obj, &key_len);
     }
     // connect to AP
-    
+
     if (0 == joinAP(&self->esp8285, ssid, key)) {
         nlr_raise(mp_obj_new_exception_msg_varg(&mp_type_OSError, "could not connect to ssid=%s\n", ssid));
     }
@@ -361,7 +361,7 @@ STATIC mp_obj_t esp8285_enable_ap(size_t n_args, const mp_obj_t *pos_args, mp_ma
     mp_obj_t chl = args[ARG_WIFI_CH].u_obj;
     mp_obj_t ecn = args[ARG_WIFI_ECN].u_obj;
 
-    if (eATCWSAP(&self->esp8285, mp_obj_str_get_str(ssid), mp_obj_str_get_str(key), 
+    if (eATCWSAP(&self->esp8285, mp_obj_str_get_str(ssid), mp_obj_str_get_str(key),
                                  mp_obj_get_int(chl), mp_obj_get_int(ecn)) == false)
     {
         mp_raise_msg(&mp_type_OSError, "wifi enable fail");
@@ -386,7 +386,7 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_1(esp8285_disable_ap_obj, esp8285_disable_ap);
 
 STATIC const mp_rom_map_elem_t esp8285_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_connect), MP_ROM_PTR(&esp8285_nic_connect_obj) },
-    { MP_ROM_QSTR(MP_QSTR_disconnect), MP_ROM_PTR(&esp8285_nic_disconnect_obj) },  
+    { MP_ROM_QSTR(MP_QSTR_disconnect), MP_ROM_PTR(&esp8285_nic_disconnect_obj) },
     { MP_ROM_QSTR(MP_QSTR_isconnected), MP_ROM_PTR(&esp8285_nic_isconnected_obj) },
     { MP_ROM_QSTR(MP_QSTR_ifconfig), MP_ROM_PTR(&esp8285_nic_ifconfig_obj) },
     { MP_ROM_QSTR(MP_QSTR_scan), MP_ROM_PTR(&esp8285_scan_wifi_obj) },
@@ -413,7 +413,7 @@ const mod_network_nic_type_t mod_network_nic_type_esp8285 = {
     .send = esp8285_socket_send,
     .recv = esp8285_socket_recv,
     .close = esp8285_socket_close,
-/*  
+/*
     .bind = cc3k_socket_bind,
     .listen = cc3k_socket_listen,
     .accept = cc3k_socket_accept,

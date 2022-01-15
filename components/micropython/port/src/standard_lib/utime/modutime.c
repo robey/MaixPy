@@ -40,7 +40,7 @@
 
 #include "py/runtime.h"
 #include "extmod/utime_mphal.h"
-#include "lib/timeutils/timeutils.h"
+#include "shared/timeutils/timeutils.h"
 #include "mphalport.h"
 
 /* Clock Type */
@@ -119,7 +119,7 @@ STATIC mp_obj_t time_set_time(mp_obj_t tuple) {
     mp_obj_get_array(tuple, &len, &elem);
 	bool flag = rtc_timer_set(mp_obj_get_int(elem[0]),mp_obj_get_int(elem[1]),mp_obj_get_int(elem[2]),
 				  mp_obj_get_int(elem[3]),mp_obj_get_int(elem[4]),mp_obj_get_int(elem[5]));
-	if(0 == flag) 
+	if(0 == flag)
 		return mp_const_true;
 	else
 		return mp_const_false;
@@ -242,4 +242,3 @@ const mp_obj_module_t utime_module = {
     .base = { &mp_type_module },
     .globals = (mp_obj_dict_t*)&time_module_globals,
 };
-

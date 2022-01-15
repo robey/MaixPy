@@ -1,6 +1,6 @@
 /**
  * @file esp8285.c
- * 
+ *
  * @par Copyright:
  * Copyright (c) 2015 ITEAD Intelligent Systems Co., Ltd. \n\n
  * This program is free software; you can redistribute it and/or
@@ -25,7 +25,7 @@
 #include "py/mphal.h"
 #include "py/objstr.h"
 #include "extmod/misc.h"
-#include "lib/netutils/netutils.h"
+#include "shared/netutils/netutils.h"
 
 #include "utils.h"
 #include "modmachine.h"
@@ -43,51 +43,51 @@
 
 
 STATIC void kmp_get_next(const char* targe, int next[])
-{  
-    int targe_Len = strlen(targe);  
-    next[0] = -1;  
-    int k = -1;  
-    int j = 0;  
-    while (j < targe_Len - 1)  
-    {     
-        if (k == -1 || targe[j] == targe[k])  
-        {  
-            ++j;  
-            ++k;   
-            if (targe[j] != targe[k])  
-                next[j] = k;    
-            else   
-                next[j] = next[k];  
-        }  
-        else  
-        {  
-            k = next[k];  
-        }  
-    }  
-}  
-STATIC int kmp_match(char* src,int src_len, const char* targe, int* next)  
-{  
-    int i = 0;  
-    int j = 0;  
-    int sLen = src_len;  
-    int pLen = strlen(targe);  
-    while (i < sLen && j < pLen)  
-    {     
-        if (j == -1 || src[i] == targe[j])  
-        {  
-            i++;  
-            j++;  
-        }  
-        else  
-        {       
-            j = next[j];  
-        }  
-    }  
-    if (j == pLen)  
-        return i - j;  
-    else  
-        return -1;  
-} 
+{
+    int targe_Len = strlen(targe);
+    next[0] = -1;
+    int k = -1;
+    int j = 0;
+    while (j < targe_Len - 1)
+    {
+        if (k == -1 || targe[j] == targe[k])
+        {
+            ++j;
+            ++k;
+            if (targe[j] != targe[k])
+                next[j] = k;
+            else
+                next[j] = next[k];
+        }
+        else
+        {
+            k = next[k];
+        }
+    }
+}
+STATIC int kmp_match(char* src,int src_len, const char* targe, int* next)
+{
+    int i = 0;
+    int j = 0;
+    int sLen = src_len;
+    int pLen = strlen(targe);
+    while (i < sLen && j < pLen)
+    {
+        if (j == -1 || src[i] == targe[j])
+        {
+            i++;
+            j++;
+        }
+        else
+        {
+            j = next[j];
+        }
+    }
+    if (j == pLen)
+        return i - j;
+    else
+        return -1;
+}
 STATIC uint32_t kmp_find(char* src,uint32_t src_len, const char* tagert)
 {
 	uint32_t index = 0;
@@ -377,7 +377,7 @@ uint32_t esp_recv_mul_id(esp8285_obj* nic,char* coming_mux_id, char* buffer, uin
 /* +IPD,<id>,<len>:<data> */
 /* +IPD,<len>:<data> */
 /**
- * 
+ *
  * @return -1: parameters error, -2: EOF, -3: timeout, -4:peer closed and no data in buffer
  */
 uint32_t recvPkg(esp8285_obj *nic, char *out_buff, uint32_t out_buff_len, uint32_t *data_len, uint32_t timeout, char *coming_mux_id, bool *peer_closed, bool first_time_recv)
@@ -397,7 +397,7 @@ uint32_t recvPkg(esp8285_obj *nic, char *out_buff, uint32_t out_buff_len, uint32
     if (out_buff == NULL) {
         return -1;
     }
-    
+
     if (first_time_recv) {
         frame_sum = frame_len = 0;
         socket_eof = false;
@@ -405,7 +405,7 @@ uint32_t recvPkg(esp8285_obj *nic, char *out_buff, uint32_t out_buff_len, uint32
 
     // required data already in buf, just return data
     size = Buffer_Size(&nic->buffer);
-    
+
     if (size >= out_buff_len) {
         Buffer_Gets(&nic->buffer, (uint8_t *)out_buff, out_buff_len);
         if (data_len) {
@@ -443,7 +443,7 @@ uint32_t recvPkg(esp8285_obj *nic, char *out_buff, uint32_t out_buff_len, uint32
             res = uart_stream->read(nic->uart_obj, tmp_buf + tmp_len, 1, &err);
             // printk("%s | tmp_buf %s res %d err %d\n", __func__, tmp_buf, res, err);
             if (res == 1 && err == 0) {
-                
+
                 interrupt = mp_hal_ticks_ms();
                 // backup tmp_len to tmp_pos (tmp_pos - 1)
 
@@ -511,7 +511,7 @@ uint32_t recvPkg(esp8285_obj *nic, char *out_buff, uint32_t out_buff_len, uint32
 
                 if (State == DATA) {
                     // printk("%s | frame_len %d tmp_len %d tmp_buf[tmp_pos] %02X\n", __func__, frame_len, tmp_len, tmp_buf[tmp_pos]);
-                    
+
                     frame_len -= tmp_len, tmp_len = 0; // get data
 
                     if (frame_len < 0) { // already frame_len - tmp_len before (not frame_len <= 0)
@@ -544,7 +544,7 @@ uint32_t recvPkg(esp8285_obj *nic, char *out_buff, uint32_t out_buff_len, uint32
                             }
                             continue;
                         }
-                        
+
                         // 存在异常，没有得到 \r\n 的匹配，并排除 CLOSED\r\n 的指令触发的可能性，意味着传输可能越界出错了 \r\n ，则立即回到空闲状态。
                         if (frame_len <= -1 && frame_bak != -1) {
                             // printk("%s | tmp_state %d frame_len %d tmp %02X\n", __func__, tmp_state, frame_len, tmp_buf[tmp_pos]);
@@ -589,7 +589,7 @@ uint32_t recvPkg(esp8285_obj *nic, char *out_buff, uint32_t out_buff_len, uint32
 
             continue;
         }
-        
+
         if (mp_hal_ticks_ms() - interrupt > timeout) {
             // printk("uart timeout break %d %d %d\r\n", mp_hal_ticks_ms(), interrupt, timeout);
             break; // uart no return data to timeout break
@@ -598,8 +598,8 @@ uint32_t recvPkg(esp8285_obj *nic, char *out_buff, uint32_t out_buff_len, uint32
         if (*peer_closed) {
             break; // disconnection
         }
-        
-        if (tmp_eof > 0 && tmp_eof++ > 100) { // 806400 tmp_eof 10 > one byte so 115200 > tmp_eof * 8 
+
+        if (tmp_eof > 0 && tmp_eof++ > 100) { // 806400 tmp_eof 10 > one byte so 115200 > tmp_eof * 8
             // printk("size %d\r\n", size);
             break; // sometimes communication no eof(\r\n)
         }
@@ -608,7 +608,7 @@ uint32_t recvPkg(esp8285_obj *nic, char *out_buff, uint32_t out_buff_len, uint32
     }
 
     size = Buffer_Size(&nic->buffer);
-    
+
     // peer closed and no data in buffer
     if (size == 0 && *peer_closed) {
         frame_sum = 0;
@@ -616,7 +616,7 @@ uint32_t recvPkg(esp8285_obj *nic, char *out_buff, uint32_t out_buff_len, uint32
     }
 
     size = size > out_buff_len ? out_buff_len : size;
-    
+
     Buffer_Gets(&nic->buffer, (uint8_t *)out_buff, size);
     if (data_len) {
         *data_len = size;
@@ -633,7 +633,7 @@ uint32_t recvPkg(esp8285_obj *nic, char *out_buff, uint32_t out_buff_len, uint32
 /* +IPD,<id>,<len>:<data> */
 /* +IPD,<len>:<data> */
 /**
- * 
+ *
  * @return -1: parameters error, -2: EOF, -3: timeout, -4:peer closed and no data in buffer
  */
 uint32_t old_recvPkg(esp8285_obj*nic,char* out_buff, uint32_t out_buff_len, uint32_t *data_len, uint32_t timeout, char* coming_mux_id, bool* peer_closed, bool first_time_recv)
@@ -657,7 +657,7 @@ uint32_t old_recvPkg(esp8285_obj*nic,char* out_buff, uint32_t out_buff_len, uint
     bool new_frame = false;
     mp_uint_t data_len_in_uart_buff = 0;
     bool peer_just_closed = false;
-    
+
     // parameters check
     if (out_buff == NULL) {
         return -1;
@@ -691,7 +691,7 @@ uint32_t old_recvPkg(esp8285_obj*nic,char* out_buff, uint32_t out_buff_len, uint
         }
         return out_buff_len;
     }
-    
+
     // read from uart buffer, if not frame start flag, put into nic buffer
     // and need wait for full frame flag in 200ms(can be fewer), frame format: '+IPD,id,len:data' or '+IPD,len:data'
     // wait data from uart buffer if not timeout
@@ -820,13 +820,13 @@ uint32_t old_recvPkg(esp8285_obj*nic,char* out_buff, uint32_t out_buff_len, uint
     return size;
 }
 
-void rx_empty(esp8285_obj* nic) 
+void rx_empty(esp8285_obj* nic)
 {
 	int errcode;
 	char data = 0;
 	const mp_stream_p_t * uart_stream = mp_get_stream(nic->uart_obj);
     while(uart_rx_any(nic->uart_obj) > 0) {
-        uart_stream->read(nic->uart_obj,&data,1,&errcode); 
+        uart_stream->read(nic->uart_obj,&data,1,&errcode);
     }
 }
 
@@ -843,7 +843,7 @@ char* recvString_1(esp8285_obj* nic, const char* target1,uint32_t timeout)
         }
         if (data_find(nic->buffer.buffer,iter,target1) != -1) {
             return (char*)nic->buffer.buffer;
-        } 
+        }
     }
     return NULL;
 }
@@ -925,7 +925,7 @@ bool recvFindAndFilter(esp8285_obj* nic,const char* target, const char* begin, c
 }
 
 bool eAT(esp8285_obj* nic)
-{	
+{
 	int errcode = 0;
 	const char* cmd = "AT\r\n";
 	const mp_stream_p_t * uart_stream = mp_get_stream(nic->uart_obj);
@@ -943,7 +943,7 @@ bool eAT(esp8285_obj* nic)
 }
 
 bool eATE(esp8285_obj* nic,bool enable)
-{	
+{
 	int errcode = 0;
 	const mp_stream_p_t * uart_stream = mp_get_stream(nic->uart_obj);
     rx_empty(nic);// clear rx
@@ -957,12 +957,12 @@ bool eATE(esp8285_obj* nic,bool enable)
 	{
     	const char* cmd = "ATE1\r\n";
 		uart_stream->write(nic->uart_obj,cmd,strlen(cmd),&errcode);
-    	return recvFind(nic,"OK",1000);		
+    	return recvFind(nic,"OK",1000);
 	}
 }
 
 
-bool eATRST(esp8285_obj* nic) 
+bool eATRST(esp8285_obj* nic)
 {
 	int errcode = 0;
 	const char* cmd = "AT+RST\r\n";
@@ -981,10 +981,10 @@ bool eATGMR(esp8285_obj* nic,char** version)
     rx_empty(nic);// clear rx
 	uart_stream->write(nic->uart_obj,cmd,strlen(cmd),&errcode);
 
-    return recvFindAndFilter(nic,"OK", "\r\r\n", "\r\n\r\nOK", version, 5000); 
+    return recvFindAndFilter(nic,"OK", "\r\r\n", "\r\n\r\nOK", version, 5000);
 }
 
-bool qATCWMODE(esp8285_obj* nic,char* mode) 
+bool qATCWMODE(esp8285_obj* nic,char* mode)
 {
 	int errcode = 0;
 	const char* cmd = "AT+CWMODE?\r\n";
@@ -996,7 +996,7 @@ bool qATCWMODE(esp8285_obj* nic,char* mode)
     }
     rx_empty(nic);
 	uart_stream->write(nic->uart_obj,cmd,strlen(cmd),&errcode);
-    ret = recvFindAndFilter(nic,"OK", "+CWMODE:", "\r\n\r\nOK", &str_mode,1000); 
+    ret = recvFindAndFilter(nic,"OK", "+CWMODE:", "\r\n\r\nOK", &str_mode,1000);
     if (ret) {
         *mode = atoi(str_mode);
         return true;
@@ -1009,14 +1009,14 @@ bool sATCWMODE(esp8285_obj* nic,char mode)
 {
 	int errcode = 0;
 	const char* cmd = "AT+CWMODE=";
-	const mp_stream_p_t * uart_stream = mp_get_stream(nic->uart_obj);	
+	const mp_stream_p_t * uart_stream = mp_get_stream(nic->uart_obj);
 	char mode_str[10] = {0};
     int8_t find;
 	itoa(mode, mode_str, 10);
     rx_empty(nic);
 	uart_stream->write(nic->uart_obj,cmd,strlen(cmd),&errcode);
 	uart_stream->write(nic->uart_obj,mode_str,strlen(mode_str),&errcode);
-	uart_stream->write(nic->uart_obj,"\r\n",strlen("\r\n"),&errcode);    
+	uart_stream->write(nic->uart_obj,"\r\n",strlen("\r\n"),&errcode);
     if(recvString_2(nic,"OK", "no change",1000, &find) != NULL)
         return true;
     return false;
@@ -1027,8 +1027,8 @@ bool sATCWJAP(esp8285_obj* nic, const char* ssid, const char* pwd)
 	int errcode = 0;
 	const char* cmd = "AT+CWJAP=\"";
     int8_t find;
-	const mp_stream_p_t * uart_stream = mp_get_stream(nic->uart_obj);	
-    rx_empty(nic);	
+	const mp_stream_p_t * uart_stream = mp_get_stream(nic->uart_obj);
+    rx_empty(nic);
 	uart_stream->write(nic->uart_obj,cmd,strlen(cmd),&errcode);
 	uart_stream->write(nic->uart_obj,ssid,strlen(ssid),&errcode);
 	uart_stream->write(nic->uart_obj,"\",\"",strlen("\",\""),&errcode);
@@ -1045,7 +1045,7 @@ bool sATCWDHCP(esp8285_obj* nic,char mode, bool enabled)
 	int errcode = 0;
 	const char* cmd = "AT+CWDHCP=";
     int8_t find;
-	const mp_stream_p_t * uart_stream = mp_get_stream(nic->uart_obj);	
+	const mp_stream_p_t * uart_stream = mp_get_stream(nic->uart_obj);
 	char strEn[2] = {0};
 	if (enabled) {
 		strcpy(strEn, "1");
@@ -1061,7 +1061,7 @@ bool sATCWDHCP(esp8285_obj* nic,char mode, bool enabled)
 	uart_stream->write(nic->uart_obj, &mode,1,&errcode);
 	uart_stream->write(nic->uart_obj,"\r\n",strlen("\r\n"),&errcode);
     if( recvString_2(nic,"OK", "FAIL", 10000, &find) != NULL && find==0)
-        return true;    
+        return true;
     return false;
 }
 
@@ -1070,7 +1070,7 @@ bool eATCWQAP(esp8285_obj* nic)
 {
 	int errcode = 0;
 	const char* cmd = "AT+CWQAP\r\n";
-	const mp_stream_p_t * uart_stream = mp_get_stream(nic->uart_obj);	
+	const mp_stream_p_t * uart_stream = mp_get_stream(nic->uart_obj);
     rx_empty(nic);
 	uart_stream->write(nic->uart_obj,cmd,strlen(cmd),&errcode);
     return recvFind(nic,"OK",1000);
@@ -1080,7 +1080,7 @@ bool eATCIPSTATUS(esp8285_obj* nic,char** list)
 {
     int errcode = 0;
 	const char* cmd = "AT+CIPSTATUS\r\n";
-	const mp_stream_p_t * uart_stream = mp_get_stream(nic->uart_obj);	
+	const mp_stream_p_t * uart_stream = mp_get_stream(nic->uart_obj);
 	uart_stream->write(nic->uart_obj,cmd,strlen(cmd),&errcode);
     msleep(100);
     rx_empty(nic);
@@ -1174,7 +1174,7 @@ bool sATCIPCLOSEMulitple(esp8285_obj* nic,char mux_id)
 	int errcode = 0;
 	const char* cmd = "AT+CIPCLOSE=";
     int8_t find;
-	const mp_stream_p_t * uart_stream = mp_get_stream(nic->uart_obj);	
+	const mp_stream_p_t * uart_stream = mp_get_stream(nic->uart_obj);
 	rx_empty(nic);
 	uart_stream->write(nic->uart_obj,cmd,strlen(cmd),&errcode);
 	uart_stream->write(nic->uart_obj,(const char*)&mux_id,1,&errcode);
@@ -1189,7 +1189,7 @@ bool eATCIPCLOSESingle(esp8285_obj* nic)
     int8_t find;
 	int errcode = 0;
 	const char* cmd = "AT+CIPCLOSE\r\n";
-	const mp_stream_p_t * uart_stream = mp_get_stream(nic->uart_obj);	
+	const mp_stream_p_t * uart_stream = mp_get_stream(nic->uart_obj);
     rx_empty(nic);
 	uart_stream->write(nic->uart_obj,cmd,strlen(cmd),&errcode);
     if (recvString_2(nic, "OK", "ERROR", 5000, &find) != NULL)
@@ -1215,7 +1215,7 @@ bool sATCIPMUX(esp8285_obj* nic,char mode)
 	char mode_str[10] = {0};
     int8_t find;
 	itoa(mode, mode_str, 10);
-	const mp_stream_p_t * uart_stream = mp_get_stream(nic->uart_obj);	
+	const mp_stream_p_t * uart_stream = mp_get_stream(nic->uart_obj);
     rx_empty(nic);
 	uart_stream->write(nic->uart_obj,cmd,strlen(cmd),&errcode);
 	uart_stream->write(nic->uart_obj,mode_str,strlen(mode_str),&errcode);
@@ -1228,7 +1228,7 @@ bool sATCIPSERVER(esp8285_obj* nic,char mode, uint32_t port)
 {
 	int errcode = 0;
     int8_t find;
-	const mp_stream_p_t * uart_stream = mp_get_stream(nic->uart_obj);	
+	const mp_stream_p_t * uart_stream = mp_get_stream(nic->uart_obj);
     if (mode) {
 		const char* cmd = "AT+CIPSERVER=1,";
 		char port_str[10] = {0};
@@ -1255,7 +1255,7 @@ bool sATCIPSTO(esp8285_obj* nic,uint32_t timeout)
 	const char* cmd = "AT+CIPSTO=";
 	char timeout_str[10] = {0};
 	itoa(timeout, timeout_str, 10);
-	const mp_stream_p_t * uart_stream = mp_get_stream(nic->uart_obj);	
+	const mp_stream_p_t * uart_stream = mp_get_stream(nic->uart_obj);
 	rx_empty(nic);
 	uart_stream->write(nic->uart_obj,cmd,strlen(cmd),&errcode);
 	uart_stream->write(nic->uart_obj,timeout_str,strlen(timeout_str),&errcode);
@@ -1270,7 +1270,7 @@ bool sATCIPMODE(esp8285_obj* nic,char mode)
 	const char* cmd = "AT+CIPMODE=";
 	char mode_str[10] = {0};
 	itoa(mode, mode_str, 10);
-	const mp_stream_p_t * uart_stream = mp_get_stream(nic->uart_obj);	
+	const mp_stream_p_t * uart_stream = mp_get_stream(nic->uart_obj);
 	rx_empty(nic);
 	uart_stream->write(nic->uart_obj,cmd,strlen(cmd),&errcode);
 	uart_stream->write(nic->uart_obj,mode_str,strlen(mode_str),&errcode);
@@ -1288,7 +1288,7 @@ bool sATCIPDOMAIN(esp8285_obj* nic, const char* domain_name, uint32_t timeout)
 	uart_stream->write(nic->uart_obj,"\"",strlen("\""),&errcode);
 	uart_stream->write(nic->uart_obj,domain_name,strlen(domain_name),&errcode);
 	uart_stream->write(nic->uart_obj,"\"",strlen("\""),&errcode);
-	uart_stream->write(nic->uart_obj,"\r\n",strlen("\r\n"),&errcode);  
+	uart_stream->write(nic->uart_obj,"\r\n",strlen("\r\n"),&errcode);
     return recvFind(nic,"OK",timeout);
 }
 
@@ -1367,7 +1367,7 @@ bool eATCWLAP(esp8285_obj* nic)
 
     if (recvString_1(nic, "\r\n\r\nOK", 10000) != NULL)
         return true;
-    
+
     return false;
 }
 
@@ -1379,7 +1379,7 @@ bool eATCWLAP_Start(esp8285_obj* nic)
 
     rx_empty(nic);
     uart_stream->write(nic->uart_obj,cmd,strlen(cmd),&errcode);
-	uart_stream->write(nic->uart_obj,"\r\n",strlen("\r\n"),&errcode);  
+	uart_stream->write(nic->uart_obj,"\r\n",strlen("\r\n"),&errcode);
     return true;
 }
 
@@ -1498,7 +1498,7 @@ bool eATCWSAP(esp8285_obj* nic, const char* ssid, const char* key, int chl, int 
 //    m_puart->print(chl);
 //    m_puart->print(",");
 //    m_puart->println(ecn);
-//    
+//
 //    data = recvString("OK", "ERROR", 5000);
 //    if (data.indexOf("OK") != -1) {
 //        return true;
@@ -1513,4 +1513,3 @@ bool eATCWSAP(esp8285_obj* nic, const char* ssid, const char* key, int chl, int 
 //    m_puart->println("AT+CWLIF");
 //    return recvFindAndFilter("OK", "\r\r\n", "\r\n\r\nOK", list);
 //}
-

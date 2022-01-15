@@ -39,7 +39,7 @@
 #include "py/parsenum.h"
 #include "py/formatfloat.h"
 #include "py/runtime.h"
-#include "lib/utils/interrupt_char.h"
+#include "shared/runtime/interrupt_char.h"
 #include "sleep.h"
 
 #include "mpconfigboard.h"
@@ -165,10 +165,10 @@ int uart_rx_irq(void *ctx)
 						ctx_self->data_len++;
 						// Handle interrupt coming in on a UART REPL
 						if (read_tmp == mp_interrupt_char) {
-							if (MP_STATE_VM(mp_pending_exception) == MP_OBJ_NULL) {
+							if (MP_STATE_THREAD(mp_pending_exception) == MP_OBJ_NULL) {
 								mp_sched_keyboard_interrupt();
 							} else {
-								MP_STATE_VM(mp_pending_exception) = MP_OBJ_NULL;
+								MP_STATE_THREAD(mp_pending_exception) = MP_OBJ_NULL;
 								//pendsv_object = &MP_STATE_VM(mp_kbd_exception);
 							}
 						}

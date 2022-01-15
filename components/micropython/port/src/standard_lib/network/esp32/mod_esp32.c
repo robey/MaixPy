@@ -7,7 +7,7 @@
 #include "py/runtime.h"
 #include "py/mperrno.h"
 #include "py/mphal.h"
-#include "lib/netutils/netutils.h"
+#include "shared/netutils/netutils.h"
 #include "modnetwork.h"
 #include "modmachine.h"
 #include "mpconfigboard.h"
@@ -35,7 +35,7 @@ STATIC mp_obj_t esp32_nic_ifconfig(mp_obj_t self_in) {
 		return mp_const_none;
 	}
 
-	mp_obj_t tuple[3] = {   
+	mp_obj_t tuple[3] = {
         tuple[0] = netutils_format_ipv4_addr( inet->localIp, NETUTILS_BIG ),
         tuple[1] = netutils_format_ipv4_addr( inet->subnetMask, NETUTILS_BIG ),
         tuple[2] = netutils_format_ipv4_addr( inet->gatewayIp, NETUTILS_BIG )
@@ -82,8 +82,8 @@ STATIC mp_obj_t esp32_nic_ping(size_t n_args, const mp_obj_t *pos_args, mp_map_t
             host = MP_OBJ_TO_PTR(args[ARG_host].u_obj);
         }
     }
-        
-    
+
+
     // get host type (host name or address)
     int host_type = 1;
 	if (args[ARG_host_type].u_int != -1) {
@@ -124,7 +124,7 @@ STATIC mp_obj_t esp32_nic_connect( size_t n_args, const mp_obj_t *pos_args, mp_m
     const char *ssid = NULL;
 	if (args[ARG_ssid].u_obj != mp_const_none) {
         ssid = mp_obj_str_get_data(args[ARG_ssid].u_obj, &ssid_len);
-    }		
+    }
     // get key
     size_t key_len = 0;
     const char *key = NULL;
@@ -132,7 +132,7 @@ STATIC mp_obj_t esp32_nic_connect( size_t n_args, const mp_obj_t *pos_args, mp_m
         key = mp_obj_str_get_data(args[1].u_obj, &key_len);
     }
     // connect to AP
-    
+
     int8_t err = esp32_spi_connect_AP((uint8_t*)ssid, (uint8_t*)key, 20);
     if(err != 0)
     {
@@ -152,7 +152,7 @@ STATIC mp_obj_t esp32_scan_wifi( mp_obj_t self_in )
 {
     mp_obj_t list = mp_obj_new_list(0, NULL);
     char* fail_str = m_new(char, 30);
-    
+
     esp32_spi_aps_list_t* aps_list = esp32_spi_scan_networks();
     if(aps_list == NULL)
         goto err;
@@ -236,7 +236,7 @@ STATIC void esp32_make_new_helper(esp32_nic_obj_t *self, size_t n_args, const mp
     else
     {
         mp_printf(&mp_plat_print, "[esp32_spi] use soft spi\r\n");
-        
+
         //mosi
         mosi = args_parsed[ARG_mosi].u_int;
         if (mosi == -1 || mosi > FUNC_GPIOHS31 || mosi < FUNC_GPIOHS0)
@@ -317,7 +317,7 @@ STATIC mp_obj_t esp32_adc(size_t n_args, const mp_obj_t *pos_args) {
         size_t t_len = 0;
         mp_obj_t* t = NULL;
         if(mp_obj_is_type(pos_args[1], &mp_type_tuple)){
-            mp_obj_tuple_get(pos_args[1], &t_len, &t);   
+            mp_obj_tuple_get(pos_args[1], &t_len, &t);
         }else if(mp_obj_is_type(pos_args[1], &mp_type_list)){
             mp_obj_list_get(pos_args[1], &t_len, &t);
         }
@@ -367,7 +367,7 @@ STATIC const mp_rom_map_elem_t esp32_locals_dict_table[] = {
     {MP_ROM_QSTR(MP_QSTR_adc), MP_ROM_PTR(&esp32_adc_obj)},
     {MP_ROM_QSTR(MP_QSTR_scan), MP_ROM_PTR(&esp32_scan_wifi_obj)},
     { MP_ROM_QSTR(MP_QSTR_connect), MP_ROM_PTR(&esp32_nic_connect_obj) },
-    { MP_ROM_QSTR(MP_QSTR_disconnect), MP_ROM_PTR(&esp32_nic_disconnect_obj) },  
+    { MP_ROM_QSTR(MP_QSTR_disconnect), MP_ROM_PTR(&esp32_nic_disconnect_obj) },
     { MP_ROM_QSTR(MP_QSTR_isconnected), MP_ROM_PTR(&esp32_nic_isconnected_obj) },
     { MP_ROM_QSTR(MP_QSTR_ifconfig), MP_ROM_PTR(&esp32_nic_ifconfig_obj) },
     { MP_ROM_QSTR(MP_QSTR_ping), MP_ROM_PTR(&esp32_nic_ping_obj) },
@@ -525,7 +525,7 @@ STATIC mp_uint_t esp32_socket_send(mod_network_socket_obj_t *socket, const byte 
         status = esp32_spi_socket_status(self->sock_id);
     if(status == SOCKET_CLOSED)
     {
-        self->sock_id = -1;   
+        self->sock_id = -1;
         // return 0;//TODO: should return 0 here? In CPython return len
         *_errno = MP_ENOTCONN;
         return -1;
@@ -545,11 +545,11 @@ STATIC mp_uint_t esp32_socket_send(mod_network_socket_obj_t *socket, const byte 
         if(sent_len >= len)
             break;
     }
-	
+
     return len;
 }
 
-STATIC mp_uint_t esp32_socket_sendto(mod_network_socket_obj_t *socket, const byte *buf, mp_uint_t len,  uint8_t* ip, mp_uint_t port, int *_errno) 
+STATIC mp_uint_t esp32_socket_sendto(mod_network_socket_obj_t *socket, const byte *buf, mp_uint_t len,  uint8_t* ip, mp_uint_t port, int *_errno)
 {
     int8_t ret;
 	if((mp_obj_type_t*)&mod_network_nic_type_esp32 != mp_obj_get_type(MP_OBJ_TO_PTR(socket->nic)))

@@ -5,7 +5,7 @@
 #include "py/mphal.h"
 #include "py/runtime.h"
 #include "extmod/misc.h"
-#include "lib/utils/pyexec.h"
+#include "shared/runtime/pyexec.h"
 #include "mphalport.h"
 #include "uarths.h"
 #include "encoding.h"

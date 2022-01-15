@@ -52,7 +52,7 @@ static size_t           temp_size;
 static volatile bool    is_busy_sending = false; // sending data
 static volatile bool    is_sending_jpeg = false; // sending jpeg (frame buf) data
 extern Buffer_t g_uart_send_buf_ide;
-static volatile uint32_t ide_file_save_status = 0; //0: ok, 1: busy recieve data, 2:eror memory, 3:open file err, 
+static volatile uint32_t ide_file_save_status = 0; //0: ok, 1: busy recieve data, 2:eror memory, 3:open file err,
                                                    //4: write file error, 5: busy saving, 6:parity check fail, others: unkown error
 static uint32_t ide_file_length = 0;
 static uint8_t* p_data_temp = NULL;
@@ -125,7 +125,7 @@ void vstr_add_strn_00(vstr_t *vstr, const char *str, size_t len) {
 
 
 bool ide_debug_init0()
-{    
+{
     ide_exception_str.data = (const byte*)"IDE interrupt";
     ide_exception_str.len  = 13;
     ide_exception_str.base.type = &mp_type_str;
@@ -340,7 +340,7 @@ ide_dbg_status_t ide_dbg_receive_data(machine_uart_obj_t* uart, uint8_t* data)
                     // Note: setting pendsv explicitly here because the VM is probably
                     // waiting in REPL and the soft interrupt flag will not be checked.
                     // nlr_jump(mp_const_ide_interrupt);
-                    MP_STATE_VM(mp_pending_exception) = mp_const_ide_interrupt;//MP_OBJ_FROM_PTR(&MP_STATE_VM(mp_kbd_exception));
+                    MP_STATE_THREAD(mp_pending_exception) = mp_const_ide_interrupt;//MP_OBJ_FROM_PTR(&MP_STATE_VM(mp_kbd_exception));
                     #if MICROPY_ENABLE_SCHEDULER
                     if (MP_STATE_VM(sched_state) == MP_SCHED_IDLE) {
                         MP_STATE_VM(sched_state) = MP_SCHED_PENDING;
@@ -357,7 +357,7 @@ ide_dbg_status_t ide_dbg_receive_data(machine_uart_obj_t* uart, uint8_t* data)
                 //save to FS
                 ide_file_save_status = 5;
                 mp_obj_exception_clear_traceback(mp_const_ide_interrupt);
-                MP_STATE_VM(mp_pending_exception) = mp_const_ide_interrupt;//MP_OBJ_FROM_PTR(&MP_STATE_VM(mp_kbd_exception));
+                MP_STATE_THREAD(mp_pending_exception) = mp_const_ide_interrupt;//MP_OBJ_FROM_PTR(&MP_STATE_VM(mp_kbd_exception));
                 #if MICROPY_ENABLE_SCHEDULER
                 if (MP_STATE_VM(sched_state) == MP_SCHED_IDLE) {
                     MP_STATE_VM(sched_state) = MP_SCHED_PENDING;
@@ -481,7 +481,7 @@ ide_dbg_status_t ide_dbg_dispatch_cmd(machine_uart_obj_t* uart, uint8_t* data)
                     // interrupt running code by raising an exception
                     mp_obj_exception_clear_traceback(mp_const_ide_interrupt);
                     // pendsv_nlr_jump_hard(mp_const_ide_interrupt);
-                    MP_STATE_VM(mp_pending_exception) = mp_const_ide_interrupt; //MP_OBJ_FROM_PTR(&MP_STATE_VM(mp_kbd_exception));
+                    MP_STATE_THREAD(mp_pending_exception) = mp_const_ide_interrupt; //MP_OBJ_FROM_PTR(&MP_STATE_VM(mp_kbd_exception));
                     #if MICROPY_ENABLE_SCHEDULER
                     if (MP_STATE_VM(sched_state) == MP_SCHED_IDLE) {
                         MP_STATE_VM(sched_state) = MP_SCHED_PENDING;
@@ -560,7 +560,7 @@ ide_dbg_status_t ide_dbg_dispatch_cmd(machine_uart_obj_t* uart, uint8_t* data)
                 sipeed_sys_reset();
                 break;
 
-            case USBDBG_FB_ENABLE: 
+            case USBDBG_FB_ENABLE:
             {
                 if(ide_dbg_cmd_len_count < 8)
                     return IDE_DBG_DISPATCH_STATUS_WAIT;
@@ -670,7 +670,7 @@ void      ide_save_file()
         data = file_name + tmp;
         uint32_t file_len = ide_file_length - 32 - tmp;
         mp_obj_t file = vfs_internal_open((const char*)file_name, "wb", &err);
-        
+
         if( file==NULL || err!=0)
         {
             ide_file_save_status = 3;
@@ -696,7 +696,7 @@ bool ide_dbg_interrupt_main()
         // interrupt running code by raising an exception
         mp_obj_exception_clear_traceback(mp_const_ide_interrupt);
         // pendsv_nlr_jump_hard(mp_const_ide_interrupt);
-        MP_STATE_VM(mp_pending_exception) = mp_const_ide_interrupt; //MP_OBJ_FROM_PTR(&MP_STATE_VM(mp_kbd_exception));
+        MP_STATE_THREAD(mp_pending_exception) = mp_const_ide_interrupt; //MP_OBJ_FROM_PTR(&MP_STATE_VM(mp_kbd_exception));
         #if MICROPY_ENABLE_SCHEDULER
         if (MP_STATE_VM(sched_state) == MP_SCHED_IDLE) {
             MP_STATE_VM(sched_state) = MP_SCHED_PENDING;
@@ -768,4 +768,3 @@ void ide_dbg_on_script_end()
 
 }
 #endif
-

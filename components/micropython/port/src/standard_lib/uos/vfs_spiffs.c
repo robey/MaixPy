@@ -38,7 +38,7 @@
 #include "py/binary.h"
 #include "py/objarray.h"
 
-#include "lib/timeutils/timeutils.h"
+#include "shared/timeutils/timeutils.h"
 
 #include "vfs_spiffs.h"
 #include "spiffs_config.h"
@@ -74,11 +74,11 @@ STATIC mp_import_stat_t spiffs_vfs_import_stat(void *vfs_in,const char *path) {
     }
     int res = SPIFFS_stat(&vfs->fs,file_path,&fno);
     if (res == SPIFFS_OK) {
-        if (fno.type == SPIFFS_TYPE_DIR) 
+        if (fno.type == SPIFFS_TYPE_DIR)
 		{
             return MP_IMPORT_STAT_DIR;
-        } 
-		else 
+        }
+		else
 		{
             return MP_IMPORT_STAT_FILE;
         }
@@ -94,7 +94,7 @@ STATIC mp_obj_t spiffs_vfs_make_new(const mp_obj_type_t *type, size_t n_args, si
     vfs->flags = MODULE_SPIFFS;
 	vfs->fs.user_data = vfs;
     //TODO:load block protocol methods mp_load_method() vfs_fat.c
-	//TODO: add error-returning process	
+	//TODO: add error-returning process
 //	mp_buffer_info_t bufinfo;
 //	mp_get_buffer_raise(mp_load_attr(args[0],MP_QSTR_fs_data), &bufinfo,MP_BUFFER_RW);
 //  vfs->cfg.phys_addr = bufinfo.buf;
@@ -102,7 +102,7 @@ STATIC mp_obj_t spiffs_vfs_make_new(const mp_obj_type_t *type, size_t n_args, si
 	vfs->cfg.phys_size = mp_obj_get_int(mp_load_attr(args[0],MP_QSTR_fs_size));
 	vfs->cfg.phys_erase_block = mp_obj_get_int(mp_load_attr(args[0],MP_QSTR_erase_block));
 	vfs->cfg.log_block_size = mp_obj_get_int(mp_load_attr(args[0],MP_QSTR_log_block_size));
-	vfs->cfg.log_page_size = mp_obj_get_int(mp_load_attr(args[0],MP_QSTR_log_page_size));	
+	vfs->cfg.log_page_size = mp_obj_get_int(mp_load_attr(args[0],MP_QSTR_log_page_size));
 	vfs->cfg.hal_read_f = spiffs_read_method;
 	vfs->cfg.hal_write_f = spiffs_write_method;
 	vfs->cfg.hal_erase_f = spiffs_erase_method;
@@ -130,7 +130,7 @@ STATIC mp_obj_t spiffs_vfs_mkfs(mp_obj_t self_in) {
 
     // create new object
     spiffs_user_mount_t *vfs = MP_OBJ_TO_PTR(self_in);
-    // make the filesystem:spiffs_format 
+    // make the filesystem:spiffs_format
     int res = mp_module_spiffs_mount(&vfs->fs,&vfs->cfg);
 	if(res == SPIFFS_ERR_NOT_A_FS)
     	res = mp_module_spiffs_format(&vfs->fs);
@@ -159,7 +159,7 @@ STATIC mp_obj_t mp_vfs_spiffs_ilistdir_it_iternext(mp_obj_t self_in) {
 	struct spiffs_dirent* de_ret;
 //	static const char types[] = "?fdhs"; // file, dir, hardlink, softlink
     for (;;) {
-		de_ret = SPIFFS_readdir(&self->dir, &de);		
+		de_ret = SPIFFS_readdir(&self->dir, &de);
         char *fn = (char*)de.name;
         if (de_ret == NULL || fn[0] == 0) {
             // stop on error or end of dir
@@ -181,7 +181,7 @@ STATIC mp_obj_t mp_vfs_spiffs_ilistdir_it_iternext(mp_obj_t self_in) {
         if (de.type == SPIFFS_TYPE_DIR) {
             // dir
             t->items[1] = MP_OBJ_NEW_SMALL_INT(MP_S_IFDIR);
-        } 
+        }
 		else{
             // file
             t->items[1] = MP_OBJ_NEW_SMALL_INT(MP_S_IFREG);
@@ -222,7 +222,7 @@ STATIC mp_obj_t spiffs_vfs_ilistdir_func(size_t n_args, const mp_obj_t *args) {
     }
 
     return MP_OBJ_FROM_PTR(iter);
-	
+
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(spiffs_vfs_ilistdir_obj, 1, 2, spiffs_vfs_ilistdir_func);
 
@@ -266,7 +266,7 @@ STATIC mp_obj_t spiffs_vfs_remove(mp_obj_t vfs_in, mp_obj_t path_in) {
         open_name[0] = '/';
         strcat(open_name, path);
     }
-	int res = SPIFFS_remove(&vfs->fs, open_name); 
+	int res = SPIFFS_remove(&vfs->fs, open_name);
     if (res != SPIFFS_OK) {
 	   	mp_printf(&mp_plat_print, "[MaixPy]:SPIFFS Error Code %d\n",res);
 		mp_raise_OSError(SPIFFS_errno_table[GET_ERR_CODE(res)]);
@@ -302,7 +302,7 @@ STATIC mp_obj_t spiffs_vfs_rename(mp_obj_t vfs_in, mp_obj_t path_in, mp_obj_t pa
         strcat(old_name, old_path);
     }
     i = 0;
-	char* new_name = (char*)&new_path[i];    
+	char* new_name = (char*)&new_path[i];
     if(new_path[0] == '.' && new_path[1] == '/')
     {
         memmove(new_name, new_name+1, strlen(new_name));
@@ -528,4 +528,3 @@ const mp_obj_type_t mp_spiffs_vfs_type = {
     .locals_dict = (mp_obj_dict_t*)&spiffs_vfs_locals_dict,
 };
 #endif
-

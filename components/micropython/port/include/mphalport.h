@@ -3,12 +3,12 @@
 #define INCLUDED_MPHALPORT_H
 
 #include "py/ringbuf.h"
-#include "lib/utils/interrupt_char.h"
+#include "shared/runtime/interrupt_char.h"
 #include "mpconfigport.h"
 
 extern ringbuf_t stdin_ringbuf;
 
-#if MICROPY_PY_THREAD 
+#if MICROPY_PY_THREAD
 #include "FreeRTOS.h"
 #include "task.h"
 extern TaskHandle_t mp_main_task_handle;
@@ -22,4 +22,3 @@ void mp_hal_delay_ms(mp_uint_t ms);
 extern mp_uint_t systick_current_millis(void);
 void mp_hal_wake_main_task_from_isr(void);
 #endif
-

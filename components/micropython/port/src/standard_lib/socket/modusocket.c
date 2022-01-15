@@ -32,7 +32,7 @@
 #include "py/runtime.h"
 #include "py/stream.h"
 #include "py/mperrno.h"
-#include "lib/netutils/netutils.h"
+#include "shared/netutils/netutils.h"
 #include "modnetwork.h"
 
 #if MICROPY_PY_USOCKET && !MICROPY_PY_LWIP
@@ -173,7 +173,7 @@ int8_t require_new_fd(){
             if( ((g_fds[i]>>j) & 0x01) == 0){
 		g_fds[i] = (0x01<<j) | g_fds[i];
                 return 8*i + j;
-            }    
+            }
         }
     }
     return -1;
@@ -337,7 +337,7 @@ STATIC void socket_select_nic(mod_network_socket_obj_t *self, const byte *ip) {
     if (self->nic == MP_OBJ_NULL) {
         // select NIC based on IP
         self->nic = mod_network_find_nic(ip);
-        self->nic_type = (mod_network_nic_type_t*)mp_obj_get_type(self->nic);		
+        self->nic_type = (mod_network_nic_type_t*)mp_obj_get_type(self->nic);
         // call the NIC to open the socket
         int _errno;
         MP_THREAD_GIL_EXIT();
@@ -383,14 +383,14 @@ STATIC const mp_rom_map_elem_t socket_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_write), MP_ROM_PTR(&mp_stream_write_obj) },
     { MP_ROM_QSTR(MP_QSTR_sendto), MP_ROM_PTR(&socket_sendto_obj) },
     { MP_ROM_QSTR(MP_QSTR_recvfrom), MP_ROM_PTR(&socket_recvfrom_obj) },
-/*    
+/*
     { MP_ROM_QSTR(MP_QSTR_bind), MP_ROM_PTR(&socket_bind_obj) },
     { MP_ROM_QSTR(MP_QSTR_listen), MP_ROM_PTR(&socket_listen_obj) },
-    { MP_ROM_QSTR(MP_QSTR_accept), MP_ROM_PTR(&socket_accept_obj) },  
+    { MP_ROM_QSTR(MP_QSTR_accept), MP_ROM_PTR(&socket_accept_obj) },
     { MP_ROM_QSTR(MP_QSTR_setsockopt), MP_ROM_PTR(&socket_setsockopt_obj) },
 */
 };
-	
+
 STATIC MP_DEFINE_CONST_DICT(socket_locals_dict, socket_locals_dict_table);
 
 // constructor socket(family=AF_INET, type=SOCK_STREAM, proto=0, fileno=None)
@@ -569,7 +569,7 @@ STATIC mp_obj_t mod_usocket_getaddrinfo(size_t n_args, const mp_obj_t *pos_args)
     tuple->items[2] = MP_OBJ_NEW_SMALL_INT(0);
     tuple->items[3] = MP_OBJ_NEW_QSTR(MP_QSTR_);
     tuple->items[4] = netutils_format_inet_addr(out_ip, port, NETUTILS_BIG);
-    return mp_obj_new_list(1, (mp_obj_t*)&tuple);  
+    return mp_obj_new_list(1, (mp_obj_t*)&tuple);
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(mod_usocket_getaddrinfo_obj, 2, 6, mod_usocket_getaddrinfo);
 
@@ -577,7 +577,7 @@ STATIC const mp_rom_map_elem_t mp_module_usocket_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_usocket) },
 
     { MP_ROM_QSTR(MP_QSTR_socket), MP_ROM_PTR(&socket_type) },
-    { MP_ROM_QSTR(MP_QSTR_getaddrinfo), MP_ROM_PTR(&mod_usocket_getaddrinfo_obj) },    
+    { MP_ROM_QSTR(MP_QSTR_getaddrinfo), MP_ROM_PTR(&mod_usocket_getaddrinfo_obj) },
 
     // class constants
     { MP_ROM_QSTR(MP_QSTR_AF_INET), MP_ROM_INT(MOD_NETWORK_AF_INET) },
@@ -594,5 +594,5 @@ const mp_obj_module_t socket_module = {
     .base = { &mp_type_module },
     .globals = (mp_obj_dict_t*)&mp_module_usocket_globals,
 };
-	
+
 #endif // MICROPY_PY_USOCKET && !MICROPY_PY_LWIP
