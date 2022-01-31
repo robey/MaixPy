@@ -40,6 +40,12 @@ STATIC mp_obj_t machine_unique_id()
 }
 MP_DEFINE_CONST_FUN_OBJ_0(machine_unique_id_obj, machine_unique_id);
 
+STATIC mp_obj_t machine_wait_for_interrupt(void) {
+    asm volatile("wfi");
+    return mp_const_none;
+}
+MP_DEFINE_CONST_FUN_OBJ_0(machine_wait_for_interrupt_obj, machine_wait_for_interrupt);
+
 STATIC const mp_rom_map_elem_t machine_module_globals_table[] = {
     { MP_OBJ_NEW_QSTR(MP_QSTR___name__), MP_OBJ_NEW_QSTR(MP_QSTR_machine) },
     { MP_ROM_QSTR(MP_QSTR_UART), MP_ROM_PTR(&machine_uart_type) },
@@ -57,6 +63,7 @@ STATIC const mp_rom_map_elem_t machine_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_WDT1_RESET),  MP_ROM_INT(SYSCTL_RESET_STATUS_WDT1) },
     { MP_ROM_QSTR(MP_QSTR_SOFT_RESET),  MP_ROM_INT(SYSCTL_RESET_STATUS_SOFT) },
     { MP_ROM_QSTR(MP_QSTR_SDCard), MP_ROM_PTR(&machine_sdcard_type) },
+    { MP_ROM_QSTR(MP_QSTR_wait_for_interrupt), MP_ROM_PTR(&machine_wait_for_interrupt_obj) },
 };
 
 STATIC MP_DEFINE_CONST_DICT (

@@ -453,6 +453,7 @@ extern const struct _mp_obj_module_t mp_module_touchscreen;
         mp_handle_pending(true); \
         MICROPY_PY_USOCKET_EVENTS_HANDLER \
         MP_THREAD_GIL_EXIT(); \
+        asm volatile("wfi"); \
         MP_THREAD_GIL_ENTER(); \
     } while (0);
 #else
@@ -460,6 +461,7 @@ extern const struct _mp_obj_module_t mp_module_touchscreen;
     do { \
         mp_handle_pending(true); \
         MICROPY_PY_USOCKET_EVENTS_HANDLER \
+        asm volatile("wfi"); \
     } while (0);
 #endif
 
