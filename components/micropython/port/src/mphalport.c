@@ -160,5 +160,8 @@ void mp_hal_wake_main_task_from_isr(void) {
 }
 
 uintptr_t mp_hal_stdio_poll(uintptr_t poll_flags) {
+	if (poll_flags & MP_STREAM_POLL_RD) {
+		if (uart_rx_wait(MP_STATE_PORT(Maix_stdio_uart), 0)) return MP_STREAM_POLL_RD;
+	}
 	return 0;
 }
