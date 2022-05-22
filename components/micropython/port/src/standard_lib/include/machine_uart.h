@@ -16,8 +16,8 @@ typedef struct _machine_uart_obj_t {
 	bool attached_to_repl: 1;
 	bool rx_int_flag: 1;
     volatile bool ide_debug_mode: 1;   // IDE debug mode or normal REPL mode
-	uint16_t read_buf_len;             
-    uint16_t read_buf_head;    
+	uint16_t read_buf_len;
+    uint16_t read_buf_head;
     uint16_t read_buf_tail;
 	uint16_t timeout;
 	uint16_t timeout_char;
@@ -26,9 +26,9 @@ typedef struct _machine_uart_obj_t {
 } machine_uart_obj_t;
 
 void uart_attach_to_repl(machine_uart_obj_t *self, bool attached);
+bool uart_rx_wait(machine_uart_obj_t *self, uint32_t timeout);
 int uart_rx_char(mp_obj_t self);
 mp_uint_t uart_rx_any(machine_uart_obj_t *self);
 void uart_tx_strn(machine_uart_obj_t *uart_obj, const char *str, uint len);
 
 #endif
-
