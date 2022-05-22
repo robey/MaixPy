@@ -22,6 +22,7 @@
 #include "sysctl.h"
 
 #include "py/obj.h"
+#include "py/objarray.h"
 #include "py/runtime.h"
 #include "py/mphal.h"
 
@@ -50,13 +51,13 @@ STATIC void Maix_i2s_print(const mp_print_t *print, mp_obj_t self_in, mp_print_k
     }
 }
 STATIC mp_obj_t Maix_i2s_init_helper(Maix_i2s_obj_t *self, size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
-    enum 
+    enum
     {
         ARG_sample_points,
         ARG_pll2,
         ARG_mclk,
     };
-    static const mp_arg_t allowed_args[] = 
+    static const mp_arg_t allowed_args[] =
     {
         { MP_QSTR_sample_points, MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = 1024} },
         { MP_QSTR_pll2, MP_ARG_KW_ONLY | MP_ARG_INT, {.u_int = 0} },
@@ -124,7 +125,7 @@ STATIC mp_obj_t Maix_i2s_channel_config(size_t n_args, const mp_obj_t *pos_args,
     Maix_i2s_obj_t *self = MP_OBJ_TO_PTR(pos_args[0]);
 
     //parse parameter
-    enum{ARG_channel, 
+    enum{ARG_channel,
          ARG_mode,
          ARG_resolution,
          ARG_cycles,
@@ -147,7 +148,7 @@ STATIC mp_obj_t Maix_i2s_channel_config(size_t n_args, const mp_obj_t *pos_args,
     }
     i2s_channel_num_t channel_num = args[ARG_channel].u_int;
     i2s_channle_t*    channle = &self->channel[channel_num];
-    
+
     //set resolution
     if(args[ARG_resolution].u_int >  RESOLUTION_32_BIT )
     {
@@ -167,7 +168,7 @@ STATIC mp_obj_t Maix_i2s_channel_config(size_t n_args, const mp_obj_t *pos_args,
         mp_raise_ValueError("[MAIXPY]I2S:invalid align mode");
     }
     channle->align_mode = args[ARG_align_mode].u_int;
- 
+
     //set mode
     if(args[ARG_mode].u_int >  I2S_RECEIVER )
     {
@@ -197,7 +198,7 @@ STATIC mp_obj_t Maix_i2s_channel_config(size_t n_args, const mp_obj_t *pos_args,
                             channle->cycles,
                             TRIGGER_LEVEL_4,
                             channle->align_mode);
-    }                    
+    }
     return mp_const_true;
 }
 MP_DEFINE_CONST_FUN_OBJ_KW(Maix_i2s_channel_config_obj, 2, Maix_i2s_channel_config);
@@ -237,7 +238,7 @@ STATIC mp_obj_t Maix_i2s_record(size_t n_args, const mp_obj_t *pos_args, mp_map_
     Maix_audio_obj_t *audio_obj = m_new_obj(Maix_audio_obj_t);
     audio_obj->audio.type = I2S_AUDIO;
     //parse parameter
-    enum{ARG_points, 
+    enum{ARG_points,
          ARG_time,
     };
     static const mp_arg_t allowed_args[] = {
@@ -256,7 +257,7 @@ STATIC mp_obj_t Maix_i2s_record(size_t n_args, const mp_obj_t *pos_args, mp_map_
             mp_raise_ValueError("[MAIXPY]I2S:Too many points");
         }
         audio_obj->audio.points = args[ARG_points].u_int;
-        char* audio_buf = m_new(uint32_t, audio_obj->audio.points);
+        uint32_t* audio_buf = m_new(uint32_t, audio_obj->audio.points);
         if (audio_buf == NULL) {
             mp_raise_ValueError("[MAIXPY]I2S:create audio new buf error");
         }
@@ -272,19 +273,19 @@ STATIC mp_obj_t Maix_i2s_record(size_t n_args, const mp_obj_t *pos_args, mp_map_
         if(smp_points > self->points_num)
             mp_raise_ValueError("[MAIXPY]I2S:sampling size is out of bounds");
         audio_obj->audio.points = smp_points;
-        char* audio_buf = m_new(uint32_t, audio_obj->audio.points);
+        uint32_t* audio_buf = m_new(uint32_t, audio_obj->audio.points);
         if (audio_buf == NULL)
         {
             mp_raise_ValueError("[MAIXPY]I2S:create audio new buf error");
         }
         memcpy(audio_buf, self->buf, sizeof(uint32_t) * smp_points);
         audio_obj->audio.buf = audio_buf;
-    }else 
+    }else
     {
         mp_raise_ValueError("[MAIXPY]I2S:please input recording points or time");
     }
 
-    //record 
+    //record
     i2s_receive_data_dma(self->i2s_num, audio_obj->audio.buf, audio_obj->audio.points , DMAC_CHANNEL3);
     // dmac_wait_idle(DMAC_CHANNEL3);//wait to finish recv
     return MP_OBJ_FROM_PTR(audio_obj);
@@ -316,6 +317,23 @@ STATIC mp_obj_t Maix_i2s_deinit(void*self_)
 }
 MP_DEFINE_CONST_FUN_OBJ_1(Maix_i2s_deinit_obj,Maix_i2s_deinit);
 
+STATIC mp_obj_t Maix_i2s_buffer(void *self_) {
+    Maix_i2s_obj_t* self = (Maix_i2s_obj_t*)self_;
+    return mp_obj_new_memoryview(MP_OBJ_ARRAY_TYPECODE_FLAG_RW | 'I', self->points_num, self->buf);
+}
+MP_DEFINE_CONST_FUN_OBJ_1(Maix_i2s_buffer_obj, Maix_i2s_buffer);
+
+STATIC mp_obj_t Maix_i2s_play_buffer(void *self_, mp_obj_t buffer_obj) {
+    Maix_i2s_obj_t* self = (Maix_i2s_obj_t*)self_;
+    mp_buffer_info_t buffer;
+    mp_get_buffer_raise(buffer_obj, &buffer, MP_BUFFER_READ);
+
+    i2s_set_dma_divide_16(self->i2s_num, 1);
+    i2s_send_data_dma(self->i2s_num, buffer.buf, buffer.len / sizeof(uint32_t), DMAC_CHANNEL4);
+    return mp_const_none;
+}
+MP_DEFINE_CONST_FUN_OBJ_2(Maix_i2s_play_buffer_obj, Maix_i2s_play_buffer);
+
 // STATIC  MP_DEFINE_CONST_FUN_OBJ_KW(Maix_i2s_set_dma_divede_16_obj,1,);
 // STATIC  MP_DEFINE_CONST_FUN_OBJ_KW(Maix_i2s_set_dma_divede_16_obj,1,);
 
@@ -326,8 +344,10 @@ STATIC const mp_rom_map_elem_t Maix_i2s_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_channel_config),  MP_ROM_PTR(&Maix_i2s_channel_config_obj) },
     { MP_ROM_QSTR(MP_QSTR_set_sample_rate), MP_ROM_PTR(&Maix_i2s_set_sample_rate_obj) },
     { MP_ROM_QSTR(MP_QSTR_record),          MP_ROM_PTR(&Maix_i2s_record_obj) },
-    { MP_ROM_QSTR(MP_QSTR_wait_record),          MP_ROM_PTR(&Maix_i2s_wait_record_obj) },
+    { MP_ROM_QSTR(MP_QSTR_wait_record),     MP_ROM_PTR(&Maix_i2s_wait_record_obj) },
     { MP_ROM_QSTR(MP_QSTR_play),            MP_ROM_PTR(&Maix_i2s_play_obj) },
+    { MP_ROM_QSTR(MP_QSTR_play_buffer),     MP_ROM_PTR(&Maix_i2s_play_buffer_obj) },
+    { MP_ROM_QSTR(MP_QSTR_buffer),          MP_ROM_PTR(&Maix_i2s_buffer_obj) },
     //advance interface , some user don't use it
     // { MP_ROM_QSTR(MP_QSTR_set_dma_divede_16), MP_ROM_PTR(&Maix_i2s_set_dma_divede_16_obj) },
     // { MP_ROM_QSTR(MP_QSTR_set_dma_divede_16), MP_ROM_PTR(&Maix_i2s_get_dma_divede_16_obj) },
@@ -357,7 +377,7 @@ STATIC const mp_rom_map_elem_t Maix_i2s_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_STANDARD_MODE),         MP_ROM_INT(STANDARD_MODE) },
     { MP_ROM_QSTR(MP_QSTR_RIGHT_JUSTIFYING_MODE), MP_ROM_INT(RIGHT_JUSTIFYING_MODE) },
     { MP_ROM_QSTR(MP_QSTR_LEFT_JUSTIFYING_MODE),  MP_ROM_INT(LEFT_JUSTIFYING_MODE) },
-    
+
 };
 
 STATIC MP_DEFINE_CONST_DICT(Maix_i2s_dict, Maix_i2s_locals_dict_table);
