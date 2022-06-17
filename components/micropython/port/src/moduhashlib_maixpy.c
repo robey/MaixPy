@@ -37,7 +37,7 @@ STATIC mp_obj_t uhashlib_sha256_make_new(const mp_obj_type_t *type, size_t n_arg
     mp_obj_hash_t *o = m_new_obj_var(mp_obj_hash_t, char, sizeof(sha256_context_t));
     o->base.type = type;
     o->total_len = 0;
-    sha256_init((sha256_context_t*)o->state, 64);
+    sha256_init((sha256_context_t*)o->state, 0);
     if (n_args == 1) {
         uhashlib_sha256_update(MP_OBJ_FROM_PTR(o), args[0]);
     }
