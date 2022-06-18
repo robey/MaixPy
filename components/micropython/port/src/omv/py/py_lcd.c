@@ -48,7 +48,7 @@ lcd_para_t lcd_para = {
     .offset_h1 = 0,
     .offset_w1 = 0,
     .lcd_type = LCD_TYPE_ST7789,
-    .oct = true, 
+    .oct = true,
     .dir = DIR_YX_RLDU,
     .invert = 0,
     .extra_para = NULL
@@ -251,7 +251,7 @@ static mp_obj_t py_lcd_init(size_t n_args, const mp_obj_t *pos_args, mp_map_t *k
             lcd_para.offset_h1 = 52;
             lcd_para.invert = true;
             lcd_para.dir = 0;
-            
+
             fpioa_set_function(21, FUNC_GPIOHS0 + RST_GPIONUM);
             fpioa_set_function(20, FUNC_GPIOHS0 + DCX_GPIONUM);
             fpioa_set_function(22, FUNC_SPI0_SS0 + LCD_SPI_SLAVE_SELECT);
@@ -632,7 +632,7 @@ STATIC mp_obj_t py_lcd_mirror(size_t n_args, const mp_obj_t *args)
 {
     if (n_args == 0)
         goto end;
-    
+
     mirror = mp_obj_is_true(args[0]);
     if(mirror){
         lcd_set_mirror_helper();
@@ -724,7 +724,7 @@ STATIC mp_obj_t py_lcd_fill_rectangle(size_t n_args, const mp_obj_t *args)
     {
         color = mp_obj_get_int(args[4]);
     }
-    if(x0 >= lcd_para.width || y0 >= lcd_para.height || x1 >= lcd_para.width || y1 >= lcd_para.height){
+    if(x0 >= lcd_para.width || y0 >= lcd_para.height || x1 > lcd_para.width || y1 > lcd_para.height){
         mp_raise_ValueError("arg error");
     }
     lcd->fill_rectangle(x0, y0, x1, y1, color);
