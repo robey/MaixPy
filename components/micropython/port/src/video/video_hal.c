@@ -46,7 +46,7 @@ int video_hal_display(image_t* img, video_display_roi_t img_roi)
             lcd->draw_pic_grayroi(l_pad, t_pad, img->w, img->h, img_roi.x, img_roi.y, img_roi.w, img_roi.h, (uint8_t *)(img->pixels));
         }
         else {
-            lcd->draw_pic_roi(l_pad, t_pad, img->w, img->h, img_roi.x, img_roi.y, img_roi.w, img_roi.h, (uint32_t *)(img->pixels));
+            lcd->draw_pic_roi(l_pad, t_pad, img->w, img->h, img_roi.x, img_roi.y, img_roi.w, img_roi.h, img->pixels);
         }
     }
     else{	//no cut
@@ -54,7 +54,7 @@ int video_hal_display(image_t* img, video_display_roi_t img_roi)
             lcd->draw_pic_gray(l_pad, t_pad, img_roi.w, img_roi.h, (uint8_t *)(img->pixels));
         }
         else {
-            lcd->draw_picture(l_pad, t_pad, img_roi.w, img_roi.h, (uint32_t *)(img->pixels));
+            lcd->draw_picture(l_pad, t_pad, img_roi.w, img_roi.h, img->pixels);
         }
     }
     return 0;
@@ -83,7 +83,7 @@ static int on_irq_dma4(void *ctx)
 int video_hal_display_init()
 {
     // ! don't init here, init on system start up
-    // so we can use `lcd.freq(freq)` to set lcd spi frequency 
+    // so we can use `lcd.freq(freq)` to set lcd spi frequency
     return 0;
 }
 
@@ -168,9 +168,9 @@ int video_hal_audio_play(uint8_t* data, uint32_t len, uint8_t channels)
     return 0;
 }
 
-    
+
 /**
- * 
+ *
  * @return <0 if error, 0 if success
  */
 int video_hal_file_open(avi_t* avi, const char* path, bool write)
@@ -244,7 +244,7 @@ int video_hal_file_size(avi_t* avi)
 }
 
 /**
- * 
+ *
  * @return mjpeg file size, <0 if error occurred
  */
 int video_hal_image_encode_mjpeg(avi_t* avi, image_t* img)
@@ -281,5 +281,3 @@ void video_hal_free(uint8_t* ptr)
 {
     free(ptr);
 }
-
-
