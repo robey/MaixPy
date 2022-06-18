@@ -18,6 +18,7 @@
 #define malloc(size) ({ void *_r = umm_malloc(size); if(!_r) fb_alloc_fail(); _r; })
 #define realloc(ptr, size) ({ void *_r = umm_realloc((ptr), (size)); if(!_r) fb_alloc_fail(); _r; })
 #define calloc(num, item_size) ({ void *_r = umm_calloc((num), (item_size)); if(!_r) fb_alloc_fail(); _r; })
+#undef assert
 #define assert(expression)
 #define zprintf(...)
 #define dbprintf(...) while(0)
@@ -5765,8 +5766,8 @@ decode_finder (zbar_decoder_t *dcode)
        !TEST_CFG((finder < 9) ? db->config : db->config_exp, ZBAR_CFG_ENABLE))
         return(ZBAR_NONE);
 
-    zassert(finder >= 0, ZBAR_NONE, "dir=%d sig=%04x f=%d\n",
-            dir, sig & 0xfff, finder);
+    // zassert(finder >= 0, ZBAR_NONE, "dir=%d sig=%04x f=%d\n",
+    //         dir, sig & 0xfff, finder);
 
     iseg = alloc_segment(db);
     if(iseg < 0)

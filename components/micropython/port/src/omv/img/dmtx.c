@@ -20,6 +20,7 @@
 #define malloc(size) ({ void *_r = umm_malloc(size); if(!_r) fb_alloc_fail(); _r; })
 #define realloc(ptr, size) ({ void *_r = umm_realloc((ptr), (size)); if(!_r) fb_alloc_fail(); _r; })
 #define calloc(num, item_size) ({ void *_r = umm_calloc((num), (item_size)); if(!_r) fb_alloc_fail(); _r; })
+#undef assert
 #define assert(expression)
 #define double float
 #undef DBL_MIN
@@ -1321,7 +1322,7 @@ dmtxDecodeCreateDiagnostic(DmtxDecode *dec, int *totalBytes, int *headerBytes, i
    height = dmtxDecodeGetProp(dec, DmtxPropHeight);
    channelCount = dmtxImageGetProp(dec->image, DmtxPropChannelCount);
 
-   
+
    /* Count width digits */
    for(widthDigits = 0, i = width; i > 0; i /= 10)
       widthDigits++;
