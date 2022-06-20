@@ -64,7 +64,7 @@ CONFIG_COMPONENT_MICROPYTHON_ENABLE=y
 #
 # Micropython configurations
 #
-CONFIG_MAIXPY_GC_HEAP_SIZE=0x80000
+CONFIG_MAIXPY_GC_HEAP_SIZE=0x200000
 
 #
 # Modules configurations
