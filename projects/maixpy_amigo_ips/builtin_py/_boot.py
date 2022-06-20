@@ -181,15 +181,17 @@ except Exception:
     pass
 
 banner = '''
- __  __              _____  __   __  _____   __     __
-|  \/  |     /\     |_   _| \ \ / / |  __ \  \ \   / /
-| \  / |    /  \      | |    \ V /  | |__) |  \ \_/ /
-| |\/| |   / /\ \     | |     > <   |  ___/    \   /
-| |  | |  / ____ \   _| |_   / . \  | |         | |
-|_|  |_| /_/    \_\ |_____| /_/ \_\ |_|         |_|
+                 _
+ _ __ ___   __ _(_)_  ___ __  _   _
+| '_ ` _ \ / _` | \ \/ / '_ \| | | |
+| | | | | | (_| | |>  <| |_) | |_| |
+|_| |_| |_|\__,_|_/_/\_\ .__/ \__, |
+                       |_|    |___/
 
 Official Site : https://www.sipeed.com
 Wiki          : https://maixpy.sipeed.com
+
+Talos firmware: micropython 1.17 + bug fixes
 '''
 print(banner)
 del banner
