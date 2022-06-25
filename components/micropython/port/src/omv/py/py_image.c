@@ -689,7 +689,9 @@ STATIC mp_obj_t py_image_draw_bit_sprite(size_t n_args, const mp_obj_t *args, mp
     mp_map_elem_t *color_kw = kw_args ? mp_map_lookup(kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_color), MP_MAP_LOOKUP) : NULL;
     mp_map_elem_t *color_bg_kw = kw_args ? mp_map_lookup(kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_color_bg), MP_MAP_LOOKUP) : NULL;
 
-    bool has_bg = color_bg_kw != NULL && !mp_obj_is_type(color_bg_kw->value, &mp_type_NoneType);
+    bool has_bg = color_bg_kw != NULL &&
+        color_bg_kw->value != mp_const_none &&
+        !mp_obj_is_type(color_bg_kw->value, &mp_type_NoneType);
     int width = width_kw ? mp_obj_get_int(width_kw->value) : 1;
     int color = color_kw ? py_helper_parse_color(arg_img, color_kw->value) : -1;
     int color_bg = has_bg ? py_helper_parse_color(arg_img, color_bg_kw->value) : 0;
