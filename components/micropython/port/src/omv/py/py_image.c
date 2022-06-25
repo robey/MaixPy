@@ -704,7 +704,7 @@ STATIC mp_obj_t py_image_draw_bit_sprite(size_t n_args, const mp_obj_t *args, mp
         for (int bit = 0; bit < 8; bit++) {
             bool bit_set = ((byte >> bit) & 1) != 0;
             c = bit_set ? color : color_bg;
-            if (bit_set || has_bg) {
+            if (IM_X_INSIDE(arg_img, x) && IM_Y_INSIDE(arg_img, y) && (bit_set || has_bg)) {
                 switch (arg_img->bpp) {
                     case IMAGE_BPP_BINARY: {
                         IMAGE_PUT_BINARY_PIXEL(arg_img, x, y, c);
