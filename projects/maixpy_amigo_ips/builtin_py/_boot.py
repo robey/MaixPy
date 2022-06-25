@@ -206,10 +206,6 @@ try:
 except Exception as e:
     print(e)
 
-
-cfg = json.dumps(config)
-print(cfg)
-
 try:
     with open('/flash/config.json', 'rb') as f:
         tmp = json.loads(f.read())
@@ -218,6 +214,6 @@ try:
             raise Exception('config.json no exist')
 except Exception as e:
     with open('/flash/config.json', "w") as f:
-        f.write(cfg)
+        f.write(json.dumps(config))
     import machine
     machine.reset()
