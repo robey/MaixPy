@@ -741,6 +741,103 @@ STATIC mp_obj_t py_image_draw_bit_sprite(size_t n_args, const mp_obj_t *args, mp
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_KW(py_image_draw_bit_sprite_obj, 3, py_image_draw_bit_sprite);
 
+// talos:
+// def draw_sprite(
+//     self,
+//     x: int,
+//     y: int,
+//     data: bytes,
+//     width: int,
+//     *,
+//     pixel_width: int = 1,
+//     palette: List[int] = [ 0, 0xffff ],
+//     rotate: int = 0,  # 1 = 90, 2 = 180, 3 = 270 deg
+// )
+STATIC mp_obj_t py_image_draw_sprite(size_t n_args, const mp_obj_t *args, mp_map_t *kw_args) {
+    // to simplify things, we'll only deal with RGB565 images (those created with `Image(size=...)`)
+    image_t *arg_img = py_helper_arg_to_image_color(args[0]);
+
+    mp_int_t arg_x = mp_obj_get_int(args[1]);
+    mp_int_t arg_y = mp_obj_get_int(args[2]);
+    size_t sprite_len = 0;
+    const uint8_t *sprite_data = (const uint8_t *)mp_obj_str_get_data(args[3], &sprite_len);
+
+    mp_int_t width = py_helper_keyword_int(n_args, args, 4, kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_width), 0);
+    if (width < 1) {
+        mp_raise_ValueError(MP_ERROR_TEXT("width must be >= 1"));
+    }
+
+    mp_map_elem_t *kw_arg;
+    kw_arg = mp_map_lookup(kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_pixel_width), MP_MAP_LOOKUP);
+    mp_int_t pixel_width = kw_arg ? mp_obj_get_int(kw_arg->value) : 1;
+    if (pixel_width != 1 && pixel_width != 2 && pixel_width != 4 && pixel_width != 8) {
+        mp_raise_ValueError(MP_ERROR_TEXT("pixel_width must be 1, 2, 4, or 8"));
+    }
+    mp_int_t bit_mask = (1 << pixel_width) - 1;
+    mp_int_t byte_width = (width * pixel_width + 7) >> 3;
+    // mp_int_t height = sprite_len / byte_width;
+
+    mp_int_t palette_size = 1 << pixel_width;
+    kw_arg = mp_map_lookup(kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_palette), MP_MAP_LOOKUP);
+    mp_obj_t *palette;
+    if (kw_arg) {
+        mp_obj_get_array_fixed_n(kw_arg->value, palette_size, &palette);
+    } else {
+        // build a fakey one of all transparent & one white (pointless for any pixel_width beyond 1)
+        mp_obj_t p_obj = mp_obj_new_list(0, NULL);
+        for (int i = 0; i < palette_size - 1; i++) mp_obj_list_append(p_obj, mp_obj_new_int(0));
+        mp_obj_list_append(p_obj, mp_obj_new_int(0xffffff));
+        mp_obj_get_array_fixed_n(p_obj, palette_size, &palette);
+    }
+
+    kw_arg = mp_map_lookup(kw_args, MP_OBJ_NEW_QSTR(MP_QSTR_rotate), MP_MAP_LOOKUP);
+    mp_int_t rotate = kw_arg ? mp_obj_get_int(kw_arg->value) : 0;
+    static const mp_int_t transform_table[4][4] = {
+        { 1, 0, 0, 1 }, { 0, 1, -1, 0 }, { -1, 0, 0, -1 }, { 0, -1, 1, 0 }
+    };
+    // we could adjust the upper-left corner, but it's better not to:
+    // mp_int_t x_offset = rotate > 1 ? width - 1 : 0;
+    // mp_int_t y_offset = rotate == 1 || rotate == 2 ? height - 1 : 0;
+    const mp_int_t *transform = transform_table[rotate % 4];
+
+// use alpha from c2 to merge into c1
+#define PIDS_BLEND(_c1, _c2) ({ \
+    mp_uint_t c1 = (_c1), c2 = (_c2); \
+    double alpha = (double)((c2 >> 16) & 0xff) / 255.0, nalpha = 1.0 - alpha; \
+    IM_RGB565( \
+        (uint16_t)round((double)IM_R565(c1 & 0xffff) * nalpha + (double)IM_R565(c2 & 0xffff) * alpha), \
+        (uint16_t)round((double)IM_G565(c1 & 0xffff) * nalpha + (double)IM_G565(c2 & 0xffff) * alpha), \
+        (uint16_t)round((double)IM_B565(c1 & 0xffff) * nalpha + (double)IM_B565(c2 & 0xffff) * alpha) \
+    ) & 0xffff; \
+})
+
+    int x = 0, y = 0, byte_offset = 0;
+    for (size_t i = 0; i < sprite_len; i++) {
+        uint8_t byte = sprite_data[i];
+        for (int bit = 0; bit < 8 && x < width; bit += pixel_width) {
+            mp_int_t xp = arg_x + x * transform[0] + y * transform[1];
+            mp_int_t yp = arg_y + x * transform[2] + y * transform[3];
+            if (IM_X_INSIDE(arg_img, xp) && IM_Y_INSIDE(arg_img, yp)) {
+                mp_int_t old_color = IMAGE_GET_RGB565_PIXEL(arg_img, xp, yp);
+                mp_int_t color = mp_obj_get_int(palette[(byte >> bit) & bit_mask]);
+                mp_int_t blend = PIDS_BLEND(old_color, color);
+                IMAGE_PUT_RGB565_PIXEL(arg_img, xp, yp, blend);
+            }
+            x++;
+        }
+
+        byte_offset++;
+        if (byte_offset >= byte_width) {
+            byte_offset = 0;
+            x = 0;
+            y++;
+        }
+    }
+
+    return args[0];
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_KW(py_image_draw_sprite_obj, 4, py_image_draw_sprite);
+
 static mp_obj_t py_image_mean_pool(mp_obj_t img_obj, mp_obj_t x_div_obj, mp_obj_t y_div_obj)
 {
     image_t *arg_img = py_helper_arg_to_image_mutable(img_obj);
@@ -6276,6 +6373,7 @@ static const mp_rom_map_elem_t locals_dict_table[] = {
     {MP_ROM_QSTR(MP_QSTR_get_pixel),           MP_ROM_PTR(&py_image_get_pixel_obj)},
     {MP_ROM_QSTR(MP_QSTR_set_pixel),           MP_ROM_PTR(&py_image_set_pixel_obj)},
     {MP_ROM_QSTR(MP_QSTR_draw_bit_sprite),     MP_ROM_PTR(&py_image_draw_bit_sprite_obj)},
+    {MP_ROM_QSTR(MP_QSTR_draw_sprite),         MP_ROM_PTR(&py_image_draw_sprite_obj)},
     {MP_ROM_QSTR(MP_QSTR_mean_pool),           MP_ROM_PTR(&py_image_mean_pool_obj)},
     {MP_ROM_QSTR(MP_QSTR_mean_pooled),         MP_ROM_PTR(&py_image_mean_pooled_obj)},
     {MP_ROM_QSTR(MP_QSTR_midpoint_pool),       MP_ROM_PTR(&py_image_midpoint_pool_obj)},
