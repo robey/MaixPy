@@ -190,17 +190,26 @@ banner = '''
 
 Official Site : https://www.sipeed.com
 Wiki          : https://maixpy.sipeed.com
-
-Talos firmware: micropython 1.17 + bug fixes
 '''
 print(banner)
 del banner
 
+uname = os.uname()
+print(f"TALOS firmware: {uname.sysname} {uname.version}")
+print()
+del uname
+
 try:
     from machine import I2C
+    # initialize power management:
     axp173 = I2C(I2C.I2C3, freq=100000, scl=24, sda=27)
+    # LDO4 = 1.5v
     axp173.writeto_mem(0x34, 0x27, 0x20, mem_size=8)
+    # LDO3 = 3v
     axp173.writeto_mem(0x34, 0x28, 0x0C, mem_size=8)
+    # 按键参数设置 button parameter setting:
+    # boot time 2s, long press 1s, auto-shutdown when pressed longer than
+    # shutdown, pwrok delay 64ms after poweron, shutdown time 4s
     axp173.writeto_mem(0x34, 0x36, 0xCC, mem_size=8)
     del axp173
 except Exception as e:
